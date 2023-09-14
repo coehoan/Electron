@@ -1,60 +1,61 @@
 <script>
-    import {companyName, year} from "../../../scripts/store/store";
+    import {companyName, companySeq, year} from "../../../scripts/store/store";
     import {push} from "svelte-spa-router";
 
     let companyInfo = [];
-    let adminInfo = {
-        name: '',
-        roles: '',
-        email: '',
-        tel: '',
-        phone: '',
-        type: ''
-    }
-    let tableBody;
+    let newAdminList =[];
 
     window.api.response('info-response', (data) => {
         companyInfo = data;
     })
+    window.api.response('adminResponse', (data) => {
+        if (data) {
+            newAdminList = [];
+            // 담당자 저장, 삭제 성공 후 목록 재조회
+            window.api.request('getCompanyInfo');
+        }
+    })
     window.api.request('getCompanyInfo');
 
-    function add() {
-        let element = document.createElement('tr');
-        element.innerHTML += `
-                <td>
-                    <input bind:value={adminInfo.name} style="width: 150px;"/>
-                </td>
-                <td>
-                    <input bind:value={adminInfo.roles} style="width: 150px;"/>
-                </td>
-                <td>
-                    <input bind:value={adminInfo.email} style="width: 150px;"/>
-                </td>
-                <td>
-                    <input bind:value={adminInfo.tel} style="width: 150px;"/>
-                </td>
-                <td>
-                    <input bind:value={adminInfo.phone} style="width: 150px;"/>
-                </td>
-                <td>
-                    <select bind:value={adminInfo.type} style="width: 150px">
-                        <option value="주">주담당자</option>
-                        <option value="부">부담당자</option>
-                        <option value="기타">기타</option>
-                    </select>
-                </td>
-                <td>
-                    <button on:click={del}>삭제</button>
-                </td>`
-        tableBody.append(element);
-
-        element.querySelector('button').addEventListener('click', del);
+    /**
+     * 담당자 입력창 추가
+     * */
+    function addAdminList() {
+        let adminInfo = {
+            basic_info_seq: 1,
+            company_seq: $companySeq,
+            name: '',
+            roles: '',
+            email: '',
+            tel: '',
+            phone: '',
+            type: ''
+        }
+        newAdminList = [...newAdminList, adminInfo];
     }
 
-    function del (e) {
-        let parentNode = e.target.parentNode.parentNode;
-        console.log(parentNode)
+    /**
+     * 담당자 입력창 삭제
+     * */
+    function removeAdminList(e) {
+        newAdminList.splice(e, 1);
+        newAdminList = newAdminList;
     }
+
+    /**
+     * 담당자 삭제
+     * */
+    function deleteAdmin (e) {
+        window.api.request('deleteAdmin', e);
+    }
+
+    /**
+     * 담당자 저장
+     * */
+    function saveAdmin() {
+        window.api.request('saveAdmin', newAdminList);
+    }
+
 </script>
 
 <main>
@@ -93,7 +94,7 @@
                 <th></th>
                 <th></th>
                 <th>
-                    <button on:click={add}>추가</button>
+                    <button on:click={addAdminList} style="width: 100px">추가</button>
                 </th>
             </tr>
             <tr>
@@ -106,7 +107,7 @@
                 <th></th>
             </tr>
             </thead>
-            <tbody bind:this={tableBody}>
+            <tbody>
             {#each companyInfo as info}
                 <tr>
                     <td style="display: none">{info.id}</td>
@@ -118,12 +119,53 @@
                     <td>{info.type}</td>
                     {#if info.id > 1}
                         <td>
-                            <button on:click={del}>삭제</button>
+                            <button on:click={() => {deleteAdmin(info.id)}}>삭제</button>
                         </td>
                     {/if}
                 </tr>
             {/each}
-
+            {#if newAdminList.length > 0}
+                {#each newAdminList as list, index}
+                    <tr>
+                        <td>
+                            <input bind:value={list.name} style="width: 150px;" />
+                        </td>
+                        <td>
+                            <input bind:value={list.roles} style="width: 150px;" />
+                        </td>
+                        <td>
+                            <input bind:value={list.email} style="width: 150px;" />
+                        </td>
+                        <td>
+                            <input bind:value={list.tel} style="width: 150px;" />
+                        </td>
+                        <td>
+                            <input bind:value={list.phone} style="width: 150px;" />
+                        </td>
+                        <td>
+                            <select bind:value={list.type} style="width: 150px">
+                                <option value="주담당자">주담당자</option>
+                                <option value="부담당자">부담당자</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </td>
+                        <td>
+                            <button on:click={() => removeAdminList(index)}>삭제</button>
+                        </td>
+                    </tr>
+                {/each}
+            {/if}
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <button on:click={saveAdmin} style="width: 100px">저장</button>
+                </td>
+            </tr>
             </tbody>
         </table>
     {/if}

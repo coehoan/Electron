@@ -47,6 +47,7 @@
     "sirv-cli": "^2.0.2",
     "svelte": "^3.59.2",
     "svelte-spa-router": "^3.3.0",
-    "wait-on": "^6.0.1"
+    "wait-on": "^6.0.1",
+    "yarn": "^1.22.19"
   }
 }

@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron');
 const sqlite3 = require('sqlite3');
+const {ca} = require("wait-on/exampleConfig");
 
 let db;
 
@@ -22,5 +23,46 @@ module.exports = {
                 event.sender.send('info-response', data);
             }
         })
+    }),
+
+    /**
+     * 담당자 삭제
+     * */
+    deleteAdmin: ipcMain.on('deleteAdmin', (event, args) => {
+        try {
+            db.run(`
+            DELETE FROM admin
+            WHERE id = ${args}
+        `, (err) => {
+                if (err) {
+                    console.log('Delete Admin Fail:: ', err.message);
+                } else {
+                    event.sender.send('adminResponse', true);
+                }
+            })
+        } catch (e) {
+            event.sender.send('adminResponse', false);
+        }
+    }),
+
+    /**
+     * 담당자 저장
+     * */
+    saveAdmin: ipcMain.on('saveAdmin', (event, args) => {
+        try {
+            args.forEach((e) => {
+                db.run(`
+                    INSERT INTO admin('basic_info_seq', 'company_seq', 'name', 'roles', 'email', 'tel', 'phone', 'type')
+                    VALUES('${e.basic_info_seq}', '${e.company_seq}', '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
+                `, (err) => {
+                    if (err) {
+                        console.log('Admin data insert error occurred:: '.err.message);
+                    }
+                })
+            })
+            event.sender.send('adminResponse', true);
+        } catch (e) {
+            event.sender.send('adminResponse', false);
+        }
     })
 }

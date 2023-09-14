@@ -1,9 +1,10 @@
 <script>
     import {push} from "svelte-spa-router";
-    import {companyName, year} from "../../../scripts/store/store";
+    import {companyName, companySeq, year} from "../../../scripts/store/store";
 
     window.api.response('main-response', (data) => {
         $companyName = data.name;
+        $companySeq = data.id;
     })
     window.api.request('getMainInfo');
 </script>
