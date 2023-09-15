@@ -10,7 +10,7 @@
     }
 
     /* 주 담당자 정보 입력 */
-    window.api.response('step3-response', (data) => {
+    window.api.response('step3Response', (data) => {
         if (data) {
             push('/main');
         }

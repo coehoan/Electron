@@ -1,21 +1,24 @@
 <script>
     import {companyName, companySeq, year} from "../../../scripts/store/store";
     import {push} from "svelte-spa-router";
+    import {onMount} from "svelte";
 
     let companyInfo = [];
     let newAdminList =[];
 
-    window.api.response('info-response', (data) => {
-        companyInfo = data;
+    // TODO: 이벤트 핸들러 중복 방지하기(중복 생성을 방지하거나, 한 번 호출 후 응답받고 핸들러 삭제하기
+    onMount(() => {
+        window.api.response('infoResponse', (data) => {
+            companyInfo = data;
+            console.log(companyInfo.length)
+            window.api.removeResponse('infoResponse', () => {
+                console.log('infoResponse removed');
+            });
+        })
+        window.api.request('getCompanyInfo');
     })
-    window.api.response('adminResponse', (data) => {
-        if (data) {
-            newAdminList = [];
-            // 담당자 저장, 삭제 성공 후 목록 재조회
-            window.api.request('getCompanyInfo');
-        }
-    })
-    window.api.request('getCompanyInfo');
+
+
 
     /**
      * 담당자 입력창 추가
@@ -46,6 +49,13 @@
      * 담당자 삭제
      * */
     function deleteAdmin (e) {
+        window.api.response('adminResponse', (data) => {
+            if (data) {
+                newAdminList = [];
+                // 담당자 저장, 삭제 성공 후 목록 재조회
+                window.api.request('getCompanyInfo');
+            }
+        })
         window.api.request('deleteAdmin', e);
     }
 
@@ -53,6 +63,13 @@
      * 담당자 저장
      * */
     function saveAdmin() {
+        window.api.response('adminResponse', (data) => {
+            if (data) {
+                newAdminList = [];
+                // 담당자 저장, 삭제 성공 후 목록 재조회
+                window.api.request('getCompanyInfo');
+            }
+        })
         if (newAdminList.every((e) => !Object.values(e).includes(''))) {
             console.log('pass')
             window.api.request('saveAdmin', newAdminList);
@@ -85,6 +102,8 @@
         <ul>
             <li>기관명: {companyInfo[0].name}</li>
             <li>주소: {companyInfo[0].address}</li>
+            <li>기관코드: {companyInfo[0].code}</li>
+            <li>타입: {companyInfo[0].company_type}</li>
         </ul>
     {/if}
     <h3>담당자 정보</h3>

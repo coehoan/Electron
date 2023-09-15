@@ -23,7 +23,7 @@ module.exports = {
                     if (err) {
                         console.log('Company Info loading Error:: ', err.message);
                     } else {
-                        event.sender.send('main-response', data);
+                        event.sender.send('mainResponse', data);
                     }
                 })
             }

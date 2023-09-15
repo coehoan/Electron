@@ -8,7 +8,7 @@
     let isExist;
 
     onMount(async () => {
-        window.api.response('main-response', (data) => {
+        window.api.response('mainResponse', (data) => {
             isExist = data;
         })
         window.api.request('existFile', filePath);

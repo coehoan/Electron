@@ -10,10 +10,10 @@
         window.api.request('getCompanyList');
     })
 
-    window.api.response('step2-companyList', (data) => {
+    window.api.response('step2CompanyList', (data) => {
         companyList = data
     })
-    window.api.response('step2-response', (data) => {
+    window.api.response('step2Response', (data) => {
         if (data) {
             push('/step3');
         }

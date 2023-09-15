@@ -5,7 +5,7 @@
     function fileUpload() {
         window.api.request('fileUpload')
     }
-    window.api.response('step1-response', (data) => {
+    window.api.response('step1Response', (data) => {
         if (data) {
             push('/step2');
         } else {

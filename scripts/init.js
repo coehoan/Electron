@@ -16,7 +16,7 @@ module.exports = {
      * */
     existFile: ipcMain.on('existFile', (event, args) => {
         fs.access(args, fs.constants.F_OK, (err) => {
-            event.sender.send('main-response', !err);
+            event.sender.send('mainResponse', !err);
         })
     }),
     /**
@@ -46,19 +46,30 @@ module.exports = {
                     db.run(`
                     CREATE TABLE IF NOT EXISTS questions (
                         id INTEGER PRIMARY KEY, 
+                        num INTEGER,
+                        point REAL,
                         question TEXT, 
-                        answer1 TEXT, 
-                        answer2 TEXT, 
-                        answer3 TEXT, 
-                        answer4 TEXT, 
-                        answer5 TEXT, 
-                        self_result TEXT, 
-                        inspect_result TEXT)
+                        answer1 TEXT NULL,
+                        anspoint1 REAL NULL, 
+                        answer2 TEXT NULL, 
+                        anspoint2 REAL NULL,
+                        answer3 TEXT NULL, 
+                        anspoint3 REAL NULL,
+                        answer4 TEXT NULL, 
+                        anspoint4 REAL NULL,
+                        answer5 TEXT NULL, 
+                        anspoint5 REAL NULL,
+                        self_result INTEGER NULL,
+                        self_score REAL NULL, 
+                        inspect_result INTEGER NULL,
+                        inspect_score REAL NULL)
                 `);
                     db.run(`
                     CREATE TABLE IF NOT EXISTS company (
                         id INTEGER PRIMARY KEY, 
+                        code INTEGER,
                         name TEXT, 
+                        type TEXT,
                         address TEXT)
                 `);
                     db.run(`
@@ -81,31 +92,40 @@ module.exports = {
                 `);
                     res.questions.forEach((e) => {
                         db.run(`
-                        INSERT INTO questions (id, question, answer1, answer2, answer3, answer4, answer5, self_result, inspect_result)
+                        INSERT INTO questions (num, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score)
                         VALUES(
-                            '${e.id}', 
+                            '${e.num}',
+                            '${e.point}',
                             '${e.question}', 
                             '${e.answer1}', 
+                            '${e.anspoint1}', 
                             '${e.answer2}', 
+                            '${e.anspoint2}', 
                             '${e.answer3}',
+                            '${e.anspoint3}',
                             '${e.answer4}', 
+                            '${e.anspoint4}', 
                             '${e.answer5}', 
+                            '${e.anspoint5}', 
                             '${e.self_result}', 
-                            '${e.inspect_result}')
+                            '${e.self_score}', 
+                            '${e.inspect_result}',
+                            '${e.inspect_score}')
                     `);})
                     res.company.forEach((e) => {
                         db.run(`
-                        INSERT INTO company (id, name, address) 
+                        INSERT INTO company (code, name, type, address) 
                         VALUES(
-                            '${e.id}', 
+                            '${e.code}', 
                             '${e.name}', 
+                            '${e.type}', 
                             '${e.address}')
                     `);})
                 })
-                event.sender.send('step1-response', true)
+                event.sender.send('step1Response', true)
             })
         } catch (err) {
-            event.sender.send('step1-response', false)
+            event.sender.send('step1Response', false)
         }
     }),
     /**
@@ -117,8 +137,8 @@ module.exports = {
                 console.log('Select Error:: ', err.message);
             } else {
                 console.log('Select Success');
-                event.sender.send('step2-companyList', data);
-                // window.getFocusedWindow().webContents.send('step2-response', data);
+                event.sender.send('step2CompanyList', data);
+                // window.getFocusedWindow().webContents.send('step2Response', data);
             }
         })
     }),
@@ -131,7 +151,7 @@ module.exports = {
             VALUES (${args})`, (err) => {
             if (err) {
                 console.log('Data Insert Error:: ', err.message);
-            } else event.sender.send('step2-response', true);
+            } else event.sender.send('step2Response', true);
         })
     }),
     /**
@@ -147,13 +167,13 @@ module.exports = {
                     console.log('Select Success');
                     db.run(`
                     INSERT INTO admin (basic_info_seq, company_seq, name, roles, email, tel, phone, type)
-                    VALUES ('${row.id}', '${row.company_seq}', '${args.name}', '${args.roles}', '${args.email}', '${args.tel}', '${args.phone}', '주')
+                    VALUES ('${row.id}', '${row.company_seq}', '${args.name}', '${args.roles}', '${args.email}', '${args.tel}', '${args.phone}', '주담당자')
                 `)
                 }
             });
-            event.sender.send('step3-response', true);
+            event.sender.send('step3Response', true);
         } catch (e) {
-            event.sender.send('step3-response', false);
+            event.sender.send('step3Response', false);
         }
     })
 

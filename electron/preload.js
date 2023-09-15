@@ -1,13 +1,23 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 let validChannels = ['create', 'insert', 'delete', 'update', 'select', 'file', 'exportFile',]; // IPC 채널 추가
-let responseChannels = ['main-response', 'step1-response', 'step2-response', 'step2-companyList', 'step3-response', 'info-response', 'adminResponse'];
-let requestChannels = ['existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin'];
+let responseChannels = ['mainResponse', 'step1Response', 'step2Response', 'step2CompanyList', 'step3Response', 'infoResponse', 'adminResponse', 'selfResponse'];
+let requestChannels = ['existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo'];
 contextBridge.exposeInMainWorld(
     "api", {
         response: (channel, func) => {
             if (responseChannels.includes(channel)) {
                 ipcRenderer.on(channel, (event, ...args) => func(...args));
+            }
+        },
+        removeResponse: (channel, func) => {
+            if (responseChannels.includes(channel)) {
+                ipcRenderer.removeListener(channel, func);
+            }
+        },
+        responseOnce: (channel, func) => {
+            if (responseChannels.includes(channel)) {
+                ipcRenderer.once(channel, (event, ...args) => func(...args));
             }
         },
         request: (channel, data) => {
