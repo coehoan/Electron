@@ -1,19 +1,30 @@
 <script>
     import {companyName, year} from "../../../scripts/store/store";
     import {push} from "svelte-spa-router";
-    import {onDestroy} from "svelte";
+    import {onDestroy, onMount} from "svelte";
 
     let questionList = [];
-    let totalManage = 0;
-    let totalTech = 0;
-    let totalCrisis = 0;
-    let totalScore = 0;
+    let selfProgress, totalManage, selfManage, totalTech, selfTech, totalCrisis, selfCrisis, totalScore ,selfScore;
 
-    window.api.responseOnce('selfResponse', (data) => {
-        questionList = data;
-        console.log(questionList.length)
+    onMount(() => {
+        window.api.response('selfResponse', (data) => {
+            questionList = data;
+            selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
+            selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
+            totalScore = questionList.reduce((acc, item) => acc + item.point, 0); // 자체평가 총점
+            selfManage = questionList.filter(e => e.num >= 10000 && e.num < 20000).reduce((acc, item) => acc + item.self_score, 0); // 관리 점수
+            totalManage = questionList.filter(e => e.num >= 10000 && e.num < 20000).reduce((acc, item) => acc + item.point, 0); // 관리 총점
+            selfTech = questionList.filter(e => e.num >= 20000 && e.num < 30000).reduce((acc, item) => acc + item.self_score, 0); // 기술 점수
+            totalTech = questionList.filter(e => e.num >= 20000 && e.num < 30000).reduce((acc, item) => acc + item.point, 0); // 기술 총점
+            selfCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.self_score, 0); // 위기 점수
+            totalCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.point, 0); // 위기 총점
+        })
+        window.api.request('getQuestionInfo');
     })
-    window.api.request('getQuestionInfo');
+
+    onDestroy(() => {
+        window.api.removeResponse('selfResponse');
+    })
 </script>
 
 <main>
@@ -36,22 +47,22 @@
 
     <div style="margin-top: 30px">
         <b>기관명: </b><span>{$companyName}</span>
-        <b>진행: </b><span> / {questionList.length}</span>
-        <b>자체평가: </b><span> / {totalScore}</span>
-        <b>관리: </b><span> / {totalManage}</span>
-        <b>기술: </b><span> / {totalTech}</span>
-        <b>위기: </b><span> / {totalCrisis}</span>
+        <b>진행: </b><span>{selfProgress} / {questionList.length}</span>
+        <b>자체평가: </b><span>{selfScore} / {totalScore}</span>
+        <b>관리: </b><span>{selfManage} / {totalManage}</span>
+        <b>기술: </b><span>{selfTech} / {totalTech}</span>
+        <b>위기: </b><span>{selfCrisis} / {totalCrisis}</span>
     </div>
 
     <table style="margin-top: 100px; width: 100%">
         <thead>
-            <tr>
-                <th width="5%">순번</th>
-                <th width="15%">항목번호</th>
-                <th width="10%">배점</th>
-                <th width="15%">자체평가점수</th>
-                <th width="55%">질문</th>
-            </tr>
+        <tr>
+            <th width="5%">순번</th>
+            <th width="15%">항목번호</th>
+            <th width="10%">배점</th>
+            <th width="15%">자체평가점수</th>
+            <th width="55%">질문</th>
+        </tr>
         </thead>
         <tbody>
         {#each questionList as list, i}

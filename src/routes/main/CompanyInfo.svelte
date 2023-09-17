@@ -1,24 +1,22 @@
 <script>
     import {companyName, companySeq, year} from "../../../scripts/store/store";
     import {push} from "svelte-spa-router";
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
 
     let companyInfo = [];
     let newAdminList =[];
 
-    // TODO: 이벤트 핸들러 중복 방지하기(중복 생성을 방지하거나, 한 번 호출 후 응답받고 핸들러 삭제하기
     onMount(() => {
         window.api.response('infoResponse', (data) => {
             companyInfo = data;
-            console.log(companyInfo.length)
-            window.api.removeResponse('infoResponse', () => {
-                console.log('infoResponse removed');
-            });
         })
         window.api.request('getCompanyInfo');
     })
 
-
+    onDestroy(() => {
+        window.api.removeResponse('infoResponse');
+        window.api.removeResponse('adminResponse');
+    })
 
     /**
      * 담당자 입력창 추가

@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld(
         },
         removeResponse: (channel, func) => {
             if (responseChannels.includes(channel)) {
-                ipcRenderer.removeListener(channel, func);
+                ipcRenderer.removeAllListeners(channel);
             }
         },
         responseOnce: (channel, func) => {
