@@ -25,6 +25,14 @@
     onDestroy(() => {
         window.api.removeResponse('selfResponse');
     })
+
+    function submit() {
+        if (questionList.every((e) => { e.self_score !== ''})) {
+            window.api.request('exportFile')
+            alert('제출완료')
+        } else alert('답변이 완료되지 않았습니다.')
+
+    }
 </script>
 
 <main>
@@ -53,10 +61,12 @@
         <b>기술: </b><span>{selfTech} / {totalTech}</span>
         <b>위기: </b><span>{selfCrisis} / {totalCrisis}</span>
     </div>
-
-    <table style="margin-top: 100px; width: 100%">
+    <div style="display: flex; justify-content: end; margin-top: 30px">
+        <button on:click={submit}>최종제출</button>
+    </div>
+    <table style="width: 100%">
         <thead>
-        <tr>
+        <tr style="background-color: black; color: white">
             <th width="5%">순번</th>
             <th width="15%">항목번호</th>
             <th width="10%">배점</th>
@@ -66,7 +76,7 @@
         </thead>
         <tbody>
         {#each questionList as list, i}
-            <tr>
+            <tr style="background-color: {list.self_score === '' ? 'darkcyan' : 'white'}">
                 <td>{list.id}</td>
                 <td>{list.num}</td>
                 <td>{list.point}</td>

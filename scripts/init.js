@@ -111,7 +111,8 @@ module.exports = {
                             '${e.self_score}', 
                             '${e.inspect_result}',
                             '${e.inspect_score}')
-                    `);})
+                    `);
+                    })
                     res.company.forEach((e) => {
                         db.run(`
                         INSERT INTO company (code, name, type, address) 
@@ -120,7 +121,8 @@ module.exports = {
                             '${e.name}', 
                             '${e.type}', 
                             '${e.address}')
-                    `);})
+                    `);
+                    })
                 })
                 event.sender.send('step1Response', true)
             })
@@ -175,55 +177,6 @@ module.exports = {
         } catch (e) {
             event.sender.send('step3Response', false);
         }
-    })
-
-    /*file: ipcMain.on('file', (event, args) => {
-
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile'],
-            title: '파일 업로드'
-        }).then(async (result) => {
-            let res = await readFile(result.filePaths[0]);
-            res.forEach((e) => {
-                db.run(`insert into student(name, email) values('${e.name}', '${e.email}')`, (err) => {
-                    if (err) {
-                        console.log('File upload fail:: ', err.message);
-                    } else console.log('File upload success');
-                });
-            });
-        })
-    }),
-    exportFile: ipcMain.on('exportFile', (event, args) => {
-        let path;
-        db.all('select * from student', (err, data) => {
-            if (err) {
-                console.log('Export Error:: ', err.message);
-            } else {
-                // 폴더 선택 팝업 오픈
-                dialog.showOpenDialog(mainWindow, {
-                    defaultPath: "C:", // 디폴트 경로
-                    properties: ["openDirectory"] // 저장 경로를 폴더로 변경
-                }).then((result) => {
-                    path = result.filePaths[0]; // 지정 경로
-                    fs.writeFileSync(path + '/result.json', JSON.stringify(data)); // 해당 경로로 result.json 파일 생성
-                })
-            }
-        })
-    }),*/
-}
-
-async function readFile(filepath) {
-    // promise 객체 리턴
-    return new Promise((resolve, reject) => {
-        fs.readFile(filepath, 'utf-8', (err, data) => {
-            if (err) {
-                console.log('File read Error:: ', err.message);
-                reject(err);
-            } else {
-                console.log('File read Success');
-                resolve(JSON.parse(data));
-            }
-        })
     })
 }
 

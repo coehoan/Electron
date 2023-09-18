@@ -25,6 +25,7 @@ function createWindow() {
         icon: path.join(__dirname, '../public/favicon.png'),
         show: false
     });
+    mainWindow.setMenuBarVisibility(false); // 메뉴바 삭제
 
     if (isDev()) {
         mainWindow.webContents.openDevTools();
