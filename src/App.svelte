@@ -3,26 +3,23 @@
     import {push} from 'svelte-spa-router'
     import routes from "./routes";
     import {afterUpdate, onMount} from "svelte";
+    import {isExist} from "../scripts/store/store";
 
     let filePath = './db/evaluation.db';
-    let isExist;
 
     onMount(async () => {
         window.api.response('mainResponse', (data) => {
-            isExist = data;
+            $isExist = data;
         })
         window.api.request('existFile', filePath);
     })
 
     afterUpdate(() => {
-        if (!!isExist && isExist) {
+        if (!!$isExist && $isExist) {
             push('/main');
         } else push('/step1')
     })
 
 </script>
 
-<div style="display: none">
-    {isExist}
-</div>
 <Router {routes}/>
