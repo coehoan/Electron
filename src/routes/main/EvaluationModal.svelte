@@ -4,6 +4,7 @@
 
     let answerList = [];
     let checkedAnswer = 0;
+
     export let isModalShow = false;
     export let questionList = [];
     export let selectedSeq = 0;
@@ -11,57 +12,172 @@
         event.stopPropagation(); // 모달 클릭 이벤트 중지
     }
 
+    // TODO : onMount 시 주관식 답변 받아오기
     onMount(() => {
-        answerList = extractAnswers(questionList[selectedSeq]); // 객관식 답변 리스트
-        if (questionList[selectedSeq]['self_result'] !== '') {
-            checkedAnswer = questionList[selectedSeq]['self_result'] === '' ? 0 : questionList[selectedSeq]['self_result'];
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+        // 자체평가 진행 한 항목일 때
+        if (questionList[selectedSeq - 1]['self_result'] !== '') {
+            if (questionList[selectedSeq - 1].type === '객관식') {
+                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else {
+                let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                // input name="answer" 태그를 찾아 value를 넣어준다.
+                let inputs = document.getElementsByName('answer');
+                for (let i = 0; i < inputs.length; i++) {
+                    inputs[i].value = subAnswerList[i];
+                }
+            }
         }
     })
 
-    // TODO: 앞뒤이동 체크
+    /**
+     * 이전문제
+     * */
     function prev() {
-        if (selectedSeq === 0) {
+        if (selectedSeq === 1) {
             alert('마지막')
-        } else if (checkedAnswer !== 0) {
-            let data = {
-                id: selectedSeq + 1,
-                self_result: checkedAnswer,
-                self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`]
-            }
-            window.api.request('saveAnswer', data)
-            window.api.response('evalSaveResponse', (result) => {
-                if (result) {
-                    selectedSeq -= 1;
-                    checkedAnswer = questionList[selectedSeq]['self_result'] === '' ? 0 : questionList[selectedSeq]['self_result'];
-                }
-            })
-        } else {
-            selectedSeq -= 1;
-            checkedAnswer = questionList[selectedSeq]['self_result'] === '' ? 0 : questionList[selectedSeq]['self_result'];
         }
-        console.log(selectedSeq)
+        selectedSeq -= 1;
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+        if (questionList[selectedSeq - 1].type === '객관식') {
+            checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+        } else {
+            let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
+            let inputs = document.getElementsByName('answer');
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = subAnswerList[i];
+            }
+        }
     }
+
+    /**
+     * 다음문제
+     * */
     function next() {
+        let data = {
+            id: '',
+            self_result: '',
+            self_score: ''
+        };
         if (selectedSeq === questionList.length) {
             alert('마지막')
-        } else if (checkedAnswer !== 0) {
-            let data = {
-                id: selectedSeq + 1,
-                self_result: checkedAnswer,
-                self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`]
-            }
-            window.api.request('saveAnswer', data)
-            window.api.response('evalSaveResponse', (result) => {
-                if (result) {
-                    selectedSeq += 1;
-                    checkedAnswer = questionList[selectedSeq]['self_result'] === '' ? 0 : questionList[selectedSeq]['self_result'];
-                }
-            })
-        } else {
-            selectedSeq += 1;
-            checkedAnswer = questionList[selectedSeq]['self_result'] === '' ? 0 : questionList[selectedSeq]['self_result'];
         }
-        console.log(selectedSeq)
+
+        if (questionList[selectedSeq - 1].type === '객관식') {
+            // 답변 체크 된 경우 저장 후 다음문항 이동
+            if (checkedAnswer !== 0) {
+                data = {
+                    id: selectedSeq,
+                    self_result: checkedAnswer,
+                    self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`]
+                };
+                window.api.request('saveAnswer', data); // data 저장
+                window.api.response('evalSaveResponse', (result) => { // 저장 결과
+                    if (result) {
+                        selectedSeq += 1; // 다음 문항 이동
+                        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+                        window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                            questionList = data; // questionList 업데이트
+                            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+                            if (questionList[selectedSeq - 1].type === '객관식') {
+                                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                            } else {
+                                let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                                // input name="answer" 태그를 찾아 value를 넣어준다.
+                                let inputs = document.getElementsByName('answer');
+                                for (let i = 0; i < inputs.length; i++) {
+                                    inputs[i].value = subAnswerList[i];
+                                }
+                            }
+                            // listener 삭제
+                            window.api.removeResponse('evalSaveResponse');
+                            window.api.removeResponse('selfResponse');
+                        })
+                    }
+                });
+            // 답변 저장없이 다음문항 이동
+            } else {
+                selectedSeq += 1;
+                window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+                window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                    questionList = data; // questionList 업데이트
+                    answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+                    if (questionList[selectedSeq - 1].type === '객관식') {
+                        checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                    } else {
+                        let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                        // input name="answer" 태그를 찾아 value를 넣어준다.
+                        let inputs = document.getElementsByName('answer');
+                        for (let i = 0; i < inputs.length; i++) {
+                            inputs[i].value = subAnswerList[i];
+                        }
+                    }
+                })
+            }
+        } else if (questionList[selectedSeq - 1].type === '주관식') {
+            let inputs = document.getElementsByName('answer');
+            let values = [];
+            for (let i = 0; i < inputs.length; i++) {
+                values.push(inputs[i].value);
+            }
+            // 답변 전부 입력 된 경우 저장
+            if (values.every(e => e !== '')) {
+                data = {
+                    id: selectedSeq,
+                    self_result: values.join(';'),
+                    self_score: 'script 처리 후 입력'
+                };
+                window.api.request('saveAnswer', data); // data 저장
+                window.api.response('evalSaveResponse', (result) => { // 저장 결과
+                    if (result) {
+                        selectedSeq += 1; // 다음 문항 이동
+                        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+                        window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                            questionList = data; // questionList 업데이트
+                            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+                            if (questionList[selectedSeq - 1].type === '객관식') {
+                                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                            } else {
+                                let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                                // input name="answer" 태그를 찾아 value를 넣어준다.
+                                let inputs = document.getElementsByName('answer');
+                                for (let i = 0; i < inputs.length; i++) {
+                                    inputs[i].value = subAnswerList[i];
+                                }
+                            }
+                            // listener 삭제
+                            window.api.removeResponse('evalSaveResponse');
+                            window.api.removeResponse('selfResponse');
+                        })
+                    }
+                })
+            } else {
+                selectedSeq += 1;
+                window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+                window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                    questionList = data; // questionList 업데이트
+                    answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+                    if (questionList[selectedSeq - 1].type === '객관식') {
+                        checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                    } else {
+                        let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                        // input name="answer" 태그를 찾아 value를 넣어준다.
+                        let inputs = document.getElementsByName('answer');
+                        for (let i = 0; i < inputs.length; i++) {
+                            inputs[i].value = subAnswerList[i];
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    /**
+     * 상단 셀렉트 박스로 문항 선택 시 해당 문항으로 이동
+     * */
+    function selectQuestion() {
+        checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 객관식 답변 리스트
     }
 </script>
 
@@ -71,13 +187,13 @@
             <!-- Modal contents start -->
             <div style="display: flex; justify-content: space-between">
                 <div style="display: flex; align-items: center">
-                    <select bind:value={questionList[selectedSeq].num}>
+                    <select bind:value={selectedSeq} on:change={selectQuestion}>
                         {#each questionList as list}
-                            <option value="{list.num}">{list.num}</option>
+                            <option value="{list.id}">{list.num}</option>
                         {/each}
                     </select>
                     <div style="margin-left: 20px">
-                        <span>{questionList[selectedSeq].stalenessYn === 'Y' ? '부실도 대상입니다.' : ''}</span>
+                        <span>{questionList[selectedSeq - 1].stalenessYn === 'Y' ? '부실도 대상입니다.' : ''}</span>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; margin-right: 20px">
@@ -85,30 +201,34 @@
                 </div>
             </div>
             <div style="height: 150px; border: 1px solid black; padding: 0 10px">
-                <p>{questionList[selectedSeq].question}</p>
+                <p>{questionList[selectedSeq - 1].question}</p>
                 <ul>
-                    {#each splitArray(questionList[selectedSeq].evidence) as list}
+                    {#each splitArray(questionList[selectedSeq - 1].evidence) as list}
                     <li>{list}</li>
                     {/each}
                 </ul>
             </div>
             <h3>답변</h3>
             <div style="width: 60%; height: 100%; border: 1px solid black; margin-top: 10px; padding: 10px">
-                {#if questionList[selectedSeq].type === '객관식'}
+                <!-- 객관식 -->
+                {#if questionList[selectedSeq - 1].type === '객관식'}
                     {#each answerList as list, i}
-                        <div style="display: flex; justify-content: space-between">
-                            <div>
-                                <input type="radio" value="{i + 1}" bind:group={checkedAnswer}/>
-                                <span>{list[`answer${i+1}`]}</span>
+                        {#if list[Object.keys(list)[0]] !== ''}
+                            <div style="display: flex; justify-content: space-between">
+                                <div>
+                                    <input type="radio" value="{i + 1}" bind:group={checkedAnswer}/>
+                                    <span>{list[`answer${i + 1}`]}</span>
+                                </div>
+                                <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
                             </div>
-                            <span>{list[`anspoint${i+1}`]} / {answerList[0]['anspoint1']}</span>
-                        </div>
+                        {/if}
                     {/each}
                 {:else}
+                    <!-- 주관식 -->
                     {#each answerList as list, i}
                         <div style="display: flex; justify-content: space-between">
                             <span>{list[`answer${i+1}`]}</span>
-                            <input type="text"/>
+                            <input name="answer" value="" type="text"/>
                         </div>
                     {/each}
                 {/if}

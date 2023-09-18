@@ -29,25 +29,29 @@
         window.api.removeResponse('selfResponse');
     })
 
+    /**
+     * 최종 제출
+     * */
     function submit() {
+        // 미응답 항목 체크
         if (questionList.every((e) => { e.self_score !== ''})) {
             window.api.request('exportFile')
             alert('제출완료')
         } else alert('답변이 완료되지 않았습니다.')
-
     }
 
+    /**
+    * 자체평가 상세 모달창 오픈
+    * */
     function openModal(seq) {
-        selectedSeq = seq
+        selectedSeq = seq + 1;
         isModalShow = true
     }
-
-
 </script>
 
 <main>
     {#if isModalShow}
-        <EvaluationModal bind:isModalShow = {isModalShow} {questionList} {selectedSeq}/>
+        <EvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} {selectedSeq}/>
     {/if}
     <h1>자체평가</h1>
     <div style="border: 1px solid black; display: flex; justify-content: space-between; padding: 0 10px">
