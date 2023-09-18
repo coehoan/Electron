@@ -2,9 +2,12 @@
     import {companyName, year} from "../../../scripts/store/store";
     import {push} from "svelte-spa-router";
     import {onDestroy, onMount} from "svelte";
+    import EvaluationModal from "./EvaluationModal.svelte";
 
     let questionList = [];
     let selfProgress, totalManage, selfManage, totalTech, selfTech, totalCrisis, selfCrisis, totalScore ,selfScore;
+    let isModalShow = false;
+    let selectedSeq = 0;
 
     onMount(() => {
         window.api.response('selfResponse', (data) => {
@@ -33,9 +36,19 @@
         } else alert('답변이 완료되지 않았습니다.')
 
     }
+
+    function openModal(seq) {
+        selectedSeq = seq
+        isModalShow = true
+    }
+
+
 </script>
 
 <main>
+    {#if isModalShow}
+        <EvaluationModal bind:isModalShow = {isModalShow} {questionList} {selectedSeq}/>
+    {/if}
     <h1>자체평가</h1>
     <div style="border: 1px solid black; display: flex; justify-content: space-between; padding: 0 10px">
         <div style="display:flex; align-items: center; gap: 5px">
@@ -76,7 +89,7 @@
         </thead>
         <tbody>
         {#each questionList as list, i}
-            <tr style="background-color: {list.self_score === '' ? 'darkcyan' : 'white'}">
+            <tr on:click={() => {openModal(i)}} style="background-color: {list.self_score === '' ? 'darkcyan' : 'white'}">
                 <td>{list.id}</td>
                 <td>{list.num}</td>
                 <td>{list.point}</td>

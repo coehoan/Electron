@@ -47,6 +47,7 @@ module.exports = {
                     CREATE TABLE IF NOT EXISTS questions (
                         id INTEGER PRIMARY KEY, 
                         num INTEGER,
+                        type TEXT,
                         point REAL,
                         question TEXT, 
                         answer1 TEXT NULL,
@@ -62,7 +63,9 @@ module.exports = {
                         self_result INTEGER NULL,
                         self_score REAL NULL, 
                         inspect_result INTEGER NULL,
-                        inspect_score REAL NULL)
+                        inspect_score REAL NULL,
+                        stalenessYn TEXT,
+                        evidence TEXT NULL)
                 `);
                     db.run(`
                     CREATE TABLE IF NOT EXISTS company (
@@ -92,9 +95,10 @@ module.exports = {
                 `);
                     res.questions.forEach((e) => {
                         db.run(`
-                        INSERT INTO questions (num, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score)
+                        INSERT INTO questions (num, type, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score, stalenessYn, evidence)
                         VALUES(
                             '${e.num}',
+                            '${e.type}',
                             '${e.point}',
                             '${e.question}', 
                             '${e.answer1}', 
@@ -110,7 +114,9 @@ module.exports = {
                             '${e.self_result}', 
                             '${e.self_score}', 
                             '${e.inspect_result}',
-                            '${e.inspect_score}')
+                            '${e.inspect_score}',
+                            '${e.stalenessYn}',
+                            '${e.evidence}')
                     `);
                     })
                     res.company.forEach((e) => {
@@ -180,3 +186,17 @@ module.exports = {
     })
 }
 
+async function readFile(filepath) {
+    // promise 객체 리턴
+    return new Promise((resolve, reject) => {
+        fs.readFile(filepath, 'utf-8', (err, data) => {
+            if (err) {
+                console.log('File read Error:: ', err.message);
+                reject(err);
+            } else {
+                console.log('File read Success');
+                resolve(JSON.parse(data));
+            }
+        })
+    })
+}

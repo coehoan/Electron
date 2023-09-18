@@ -21,5 +21,23 @@ module.exports = {
                 db.close();
             }
         })
+    }),
+
+    /**
+     * 평가 답변 저장
+     * */
+    saveAnswer: ipcMain.on('saveAnswer', (event, args) => {
+        db = new sqlite3.Database('./db/evaluation.db');
+        db.run(`
+            UPDATE questions
+            SET self_result = '${args.self_result}', self_score = '${args.self_score}'
+            WHERE id = ${args.id}
+        `, (err) => {
+            if (err) {
+                console.log('Question save error:: ', err.message);
+                event.sender.send('evalSaveResponse', false)
+            } else event.sender.send('evalSaveResponse', true)
+        })
+        db.close();
     })
-}
+};
