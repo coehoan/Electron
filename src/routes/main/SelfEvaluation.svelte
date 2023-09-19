@@ -5,22 +5,21 @@
     import EvaluationModal from "./EvaluationModal.svelte";
 
     let questionList = [];
-    let selfProgress, totalManage, selfManage, totalTech, selfTech, totalCrisis, selfCrisis, totalScore ,selfScore;
+    $: selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
+    $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
+    $: totalScore = questionList.reduce((acc, item) => acc + item.point, 0); // 자체평가 총점
+    $: selfManage = questionList.filter(e => e.num >= 10000 && e.num < 20000).reduce((acc, item) => acc + item.self_score, 0); // 관리 점수
+    $: totalManage = questionList.filter(e => e.num >= 10000 && e.num < 20000).reduce((acc, item) => acc + item.point, 0); // 관리 총점
+    $: selfTech = questionList.filter(e => e.num >= 20000 && e.num < 30000).reduce((acc, item) => acc + item.self_score, 0); // 기술 점수
+    $: totalTech = questionList.filter(e => e.num >= 20000 && e.num < 30000).reduce((acc, item) => acc + item.point, 0); // 기술 총점
+    $: selfCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.self_score, 0); // 위기 점수
+    $: totalCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.point, 0); // 위기 총점
     let isModalShow = false;
     let selectedSeq = 0;
 
     onMount(() => {
         window.api.response('selfResponse', (data) => {
             questionList = data;
-            selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
-            selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
-            totalScore = questionList.reduce((acc, item) => acc + item.point, 0); // 자체평가 총점
-            selfManage = questionList.filter(e => e.num >= 10000 && e.num < 20000).reduce((acc, item) => acc + item.self_score, 0); // 관리 점수
-            totalManage = questionList.filter(e => e.num >= 10000 && e.num < 20000).reduce((acc, item) => acc + item.point, 0); // 관리 총점
-            selfTech = questionList.filter(e => e.num >= 20000 && e.num < 30000).reduce((acc, item) => acc + item.self_score, 0); // 기술 점수
-            totalTech = questionList.filter(e => e.num >= 20000 && e.num < 30000).reduce((acc, item) => acc + item.point, 0); // 기술 총점
-            selfCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.self_score, 0); // 위기 점수
-            totalCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.point, 0); // 위기 총점
         })
         window.api.request('getQuestionInfo');
     })

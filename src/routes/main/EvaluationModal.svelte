@@ -3,6 +3,7 @@
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
 
     let answerList = [];
+    let subAnswerList = [];
     let checkedAnswer = 0;
 
     export let isModalShow = false;
@@ -12,7 +13,6 @@
         event.stopPropagation(); // 모달 클릭 이벤트 중지
     }
 
-    // TODO : onMount 시 주관식 답변 받아오기
     onMount(() => {
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
@@ -20,12 +20,7 @@
             if (questionList[selectedSeq - 1].type === '객관식') {
                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
             } else {
-                let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                // input name="answer" 태그를 찾아 value를 넣어준다.
-                let inputs = document.getElementsByName('answer');
-                for (let i = 0; i < inputs.length; i++) {
-                    inputs[i].value = subAnswerList[i];
-                }
+                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
             }
         }
     })
@@ -42,11 +37,7 @@
         if (questionList[selectedSeq - 1].type === '객관식') {
             checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
         } else {
-            let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
-            let inputs = document.getElementsByName('answer');
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].value = subAnswerList[i];
-            }
+            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
         }
     }
 
@@ -82,12 +73,7 @@
                             if (questionList[selectedSeq - 1].type === '객관식') {
                                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
                             } else {
-                                let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                                // input name="answer" 태그를 찾아 value를 넣어준다.
-                                let inputs = document.getElementsByName('answer');
-                                for (let i = 0; i < inputs.length; i++) {
-                                    inputs[i].value = subAnswerList[i];
-                                }
+                                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
                             }
                             // listener 삭제
                             window.api.removeResponse('evalSaveResponse');
@@ -105,12 +91,7 @@
                     if (questionList[selectedSeq - 1].type === '객관식') {
                         checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
                     } else {
-                        let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                        // input name="answer" 태그를 찾아 value를 넣어준다.
-                        let inputs = document.getElementsByName('answer');
-                        for (let i = 0; i < inputs.length; i++) {
-                            inputs[i].value = subAnswerList[i];
-                        }
+                        subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
                     }
                 })
             }
@@ -138,12 +119,7 @@
                             if (questionList[selectedSeq - 1].type === '객관식') {
                                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
                             } else {
-                                let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                                // input name="answer" 태그를 찾아 value를 넣어준다.
-                                let inputs = document.getElementsByName('answer');
-                                for (let i = 0; i < inputs.length; i++) {
-                                    inputs[i].value = subAnswerList[i];
-                                }
+                                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
                             }
                             // listener 삭제
                             window.api.removeResponse('evalSaveResponse');
@@ -160,12 +136,7 @@
                     if (questionList[selectedSeq - 1].type === '객관식') {
                         checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
                     } else {
-                        let subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                        // input name="answer" 태그를 찾아 value를 넣어준다.
-                        let inputs = document.getElementsByName('answer');
-                        for (let i = 0; i < inputs.length; i++) {
-                            inputs[i].value = subAnswerList[i];
-                        }
+                        subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
                     }
                 })
             }
@@ -228,7 +199,7 @@
                     {#each answerList as list, i}
                         <div style="display: flex; justify-content: space-between">
                             <span>{list[`answer${i+1}`]}</span>
-                            <input name="answer" value="" type="text"/>
+                            <input name="answer" bind:value={subAnswerList[i]} type="text"/>
                         </div>
                     {/each}
                 {/if}
