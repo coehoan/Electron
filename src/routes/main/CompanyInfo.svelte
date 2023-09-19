@@ -3,6 +3,7 @@
     import {push} from "svelte-spa-router";
     import {onDestroy, onMount} from "svelte";
 
+    let title = '기관 정보';
     let companyInfo = [];
     let newAdminList =[];
 

@@ -2,8 +2,10 @@
     import {push} from "svelte-spa-router";
     import {companyName, companySeq, year} from "../../../scripts/store/store";
     import Setting from "../../lib/conponents/Setting.svelte";
+    import Header from "../../lib/layout/Header.svelte";
 
     let isSettingShow = false;
+    let title = '보안관리 실태평가';
 
     window.api.response('mainResponse', (data) => {
         $companyName = data.name;
@@ -14,7 +16,8 @@
 
 <main>
     <h1>메인</h1>
-    <div style="border: 1px solid black; display: flex; justify-content: space-between; padding: 0 10px">
+    <Header {title}/>
+    <!--<div style="border: 1px solid black; display: flex; justify-content: space-between; padding: 0 10px">
         <div style="display:flex; align-items: center; gap: 5px">
             <button on:click={() => {push('/info')}}>기관정보</button>
             <button on:click={() => {push('/self')}}>자체평가</button>
@@ -27,7 +30,7 @@
             <p>{$companyName}</p>
             <p>보안관리 실태평가</p>
         </div>
-    </div>
+    </div>-->
     {#if isSettingShow}
         <Setting bind:isSettingShow={isSettingShow}/>
     {/if}
