@@ -60,7 +60,6 @@
             self_score: '',
             memo: ''
         };
-
          if (questionList[selectedSeq - 1].type === '객관식') {
             // 답변 체크 된 경우 저장 후 다음문항 이동
             if (checkedAnswer !== 0) {
@@ -97,6 +96,7 @@
      * 답변 저장 후 다음문항 이동
      * */
     function saveAndMoveToNext(data) {
+        // moveToNext();
         window.api.request('saveAnswer', data); // data 저장
         window.api.response('evalSaveResponse', (result) => { // 저장 결과
             if (result) {
@@ -111,8 +111,12 @@
     function moveToNext() {
         if (selectedSeq === questionList.length) {
             alert('마지막 문항입니다.');
-            selectedSeq = 1;
-            isModalShow = false;
+            window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+            window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                questionList = data; // questionList 업데이트
+                selectedSeq = 1;
+                isModalShow = false;
+            })
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close
