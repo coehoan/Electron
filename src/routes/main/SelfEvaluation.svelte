@@ -2,7 +2,7 @@
     import {companyName, year} from "../../../scripts/store/store";
     import {push} from "svelte-spa-router";
     import {onDestroy, onMount} from "svelte";
-    import EvaluationModal from "./EvaluationModal.svelte";
+    import EvaluationModal from "../../lib/conponents/EvaluationModal.svelte";
     import {checkSelfScores} from "../../../scripts/util/common";
 
     let questionList = [];
