@@ -50,7 +50,7 @@
 
 <main>
     {#if isModalShow}
-        <EvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} {selectedSeq}/>
+        <EvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
     <h1>자체평가</h1>
     <div style="border: 1px solid black; display: flex; justify-content: space-between; padding: 0 10px">

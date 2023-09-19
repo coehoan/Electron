@@ -1,10 +1,11 @@
 <script>
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
 
     let answerList = [];
     let subAnswerList = [];
     let checkedAnswer = 0;
+    let isCommentShow = false;
 
     export let isModalShow = false;
     export let questionList = [];
@@ -25,14 +26,21 @@
         }
     })
 
+    onDestroy(() => {
+        document.removeEventListener('keyup', keyboardEvent);
+        // 리스너 삭제
+        window.api.removeResponse('evalSaveResponse');
+        window.api.removeResponse('selfResponse');
+    })
+
+    document.addEventListener('keyup', keyboardEvent)
+
     /**
      * 이전문제
      * */
     function prev() {
-        if (selectedSeq === 1) {
-            alert('마지막')
-        } else {
-            selectedSeq -= 1;
+        if (selectedSeq !== 1) {
+            selectedSeq = selectedSeq - 1;
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
             if (questionList[selectedSeq - 1].type === '객관식') {
                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
@@ -49,18 +57,18 @@
         let data = {
             id: '',
             self_result: '',
-            self_score: ''
+            self_score: '',
+            memo: ''
         };
 
-        if (selectedSeq === questionList.length) {
-            alert('마지막');
-        } else if (questionList[selectedSeq - 1].type === '객관식') {
+         if (questionList[selectedSeq - 1].type === '객관식') {
             // 답변 체크 된 경우 저장 후 다음문항 이동
             if (checkedAnswer !== 0) {
                 data = {
                     id: selectedSeq,
                     self_result: checkedAnswer,
-                    self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`]
+                    self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`],
+                    memo: questionList[selectedSeq - 1].memo || ''
                 };
                 saveAndMoveToNext(data);
             } else {
@@ -74,7 +82,9 @@
                 data = {
                     id: selectedSeq,
                     self_result: values.join(';'),
-                    self_score: 'script 처리 후 입력'
+                    // TODO: 주관식 답변 점수 스크립트 처리
+                    self_score: 'script 처리 후 입력',
+                    memo: questionList[selectedSeq - 1].memo || ''
                 };
                 saveAndMoveToNext(data);
             } else {
@@ -99,7 +109,14 @@
      * 다음문항 이동
      * */
     function moveToNext() {
-        selectedSeq += 1; // 다음문항 이동
+        if (selectedSeq === questionList.length) {
+            alert('마지막 문항입니다.');
+            selectedSeq = 1;
+            isModalShow = false;
+        } else {
+            selectedSeq = selectedSeq + 1; // 다음문항 이동
+            isCommentShow = false; // 지표 해설 팝업창 close
+        }
         window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
         window.api.response('selfResponse', (data) => { // question 받아오기 결과
             questionList = data; // questionList 업데이트
@@ -109,7 +126,6 @@
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
             }
-
             // 리스너 삭제
             window.api.removeResponse('evalSaveResponse');
             window.api.removeResponse('selfResponse');
@@ -124,18 +140,24 @@
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 객관식 답변 리스트
     }
 
-    document.addEventListener('keyup', (e) => {
-        if (e.code.startsWith('Digit') || e.code.startsWith('Numpad')) {
-            if (questionList[selectedSeq - 1].type === '객관식') {
-                checkedAnswer = Number(e.key);
-            }
-        } else {
-            switch (e.code) {
-                case 'ArrowRight': case 'Enter': next(); break;
-                case 'ArrowLeft': prev(); break;
+    function popUpComment() {
+        isCommentShow = true;
+    }
+
+    function keyboardEvent(e) {
+        if (document.activeElement.id !== 'textarea') {
+            if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter') {
+                if (questionList[selectedSeq - 1].type === '객관식') {
+                    checkedAnswer = Number(e.key);
+                }
+            } else {
+                switch (e.code) {
+                    case 'ArrowRight': case 'Enter': case 'NumpadEnter': next(); break;
+                    case 'ArrowLeft': prev(); break;
+                }
             }
         }
-    })
+    }
 </script>
 
 <div class="modal-overlay" on:click={() => {isModalShow = false;}}>
@@ -153,8 +175,16 @@
                         <span>{questionList[selectedSeq - 1].stalenessYn === 'Y' ? '부실도 대상입니다.' : ''}</span>
                     </div>
                 </div>
+                {#if isCommentShow}
+                    <div style="width: 300px; height: 150px; border: 1px solid black; position: fixed; background-color: white; right: 50px">
+                        <div style="display: flex; justify-content: end; margin-right: 5px; cursor: pointer" on:click={() => {isCommentShow = false}}>X</div>
+                        <div style="padding: 5px">
+                            {questionList[selectedSeq - 1].comment}
+                        </div>
+                    </div>
+                {/if}
                 <div style="display: flex; align-items: center; margin-right: 20px">
-                    <b>?</b>
+                    <div style="font-size: 20px; font-weight: bold; cursor: pointer" on:click={popUpComment}>?</div>
                 </div>
             </div>
             <div style="height: 150px; border: 1px solid black; padding: 0 10px">
@@ -191,10 +221,11 @@
                 {/if}
             </div>
             <h3>비고</h3>
-            <div style="width: 60%; height: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px"></div>
+<!--            <div style="width: 60%; height: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px"></div>-->
+            <textarea id="textarea" style="width: 62%; height: 100%; min-height: 100px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].memo}></textarea>
             <div style="display:flex; justify-content: end; margin-top: 20px; margin-right: 50px; gap: 20px">
-                <h1 on:click={prev}>←</h1>
-                <h1 on:click={next}>→</h1>
+                <h1 style="cursor: pointer" on:click={prev}>←</h1>
+                <h1 style="cursor: pointer" on:click={next}>→</h1>
             </div>
             <!-- Modal contents end -->
         </div>
@@ -209,5 +240,9 @@
         display: flex;
         justify-content: center;
         align-items: center
+    }
+
+    textarea {
+        resize: none;
     }
 </style>

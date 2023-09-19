@@ -18,7 +18,6 @@ module.exports = {
                 console.log('Question list loading error:: ', err.message);
             } else {
                 event.sender.send('selfResponse', rows);
-                db.close();
             }
         })
     }),
@@ -30,7 +29,7 @@ module.exports = {
         db = new sqlite3.Database('./db/evaluation.db');
         db.run(`
             UPDATE questions
-            SET self_result = '${args.self_result}', self_score = '${args.self_score}'
+            SET self_result = '${args.self_result}', self_score = '${args.self_score}', memo = '${args.memo}'
             WHERE id = ${args.id}
         `, (err) => {
             if (err) {
@@ -38,6 +37,5 @@ module.exports = {
                 event.sender.send('evalSaveResponse', false)
             } else event.sender.send('evalSaveResponse', true)
         })
-        db.close();
     })
 };
