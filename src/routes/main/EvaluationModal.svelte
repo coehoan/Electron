@@ -51,9 +51,10 @@
             self_result: '',
             self_score: ''
         };
+
         if (selectedSeq === questionList.length) {
-            alert('마지막')
-        }else if (questionList[selectedSeq - 1].type === '객관식') {
+            alert('마지막');
+        } else if (questionList[selectedSeq - 1].type === '객관식') {
             // 답변 체크 된 경우 저장 후 다음문항 이동
             if (checkedAnswer !== 0) {
                 data = {
@@ -61,85 +62,58 @@
                     self_result: checkedAnswer,
                     self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`]
                 };
-                window.api.request('saveAnswer', data); // data 저장
-                window.api.response('evalSaveResponse', (result) => { // 저장 결과
-                    if (result) {
-                        selectedSeq += 1; // 다음 문항 이동
-                        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-                        window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                            questionList = data; // questionList 업데이트
-                            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-                            if (questionList[selectedSeq - 1].type === '객관식') {
-                                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                            } else {
-                                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                            }
-                            // listener 삭제
-                            window.api.removeResponse('evalSaveResponse');
-                            window.api.removeResponse('selfResponse');
-                        })
-                    }
-                });
-            // 답변 저장없이 다음문항 이동
+                saveAndMoveToNext(data);
             } else {
-                selectedSeq += 1;
-                window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-                window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                    questionList = data; // questionList 업데이트
-                    answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-                    if (questionList[selectedSeq - 1].type === '객관식') {
-                        checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                    } else {
-                        subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                    }
-                })
+                moveToNext();
             }
         } else if (questionList[selectedSeq - 1].type === '주관식') {
             let inputs = document.getElementsByName('answer');
-            let values = [];
-            for (let i = 0; i < inputs.length; i++) {
-                values.push(inputs[i].value);
-            }
-            // 답변 전부 입력 된 경우 저장
+            let values = Array.from(inputs, input => input.value);
+
             if (values.every(e => e !== '')) {
                 data = {
                     id: selectedSeq,
                     self_result: values.join(';'),
                     self_score: 'script 처리 후 입력'
                 };
-                window.api.request('saveAnswer', data); // data 저장
-                window.api.response('evalSaveResponse', (result) => { // 저장 결과
-                    if (result) {
-                        selectedSeq += 1; // 다음 문항 이동
-                        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-                        window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                            questionList = data; // questionList 업데이트
-                            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-                            if (questionList[selectedSeq - 1].type === '객관식') {
-                                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                            } else {
-                                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                            }
-                            // listener 삭제
-                            window.api.removeResponse('evalSaveResponse');
-                            window.api.removeResponse('selfResponse');
-                        })
-                    }
-                })
+                saveAndMoveToNext(data);
             } else {
-                selectedSeq += 1;
-                window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-                window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                    questionList = data; // questionList 업데이트
-                    answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-                    if (questionList[selectedSeq - 1].type === '객관식') {
-                        checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                    } else {
-                        subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-                    }
-                })
+                moveToNext();
             }
         }
+    }
+
+    /**
+     * 답변 저장 후 다음문항 이동
+     * */
+    function saveAndMoveToNext(data) {
+        window.api.request('saveAnswer', data); // data 저장
+        window.api.response('evalSaveResponse', (result) => { // 저장 결과
+            if (result) {
+                moveToNext();
+            }
+        });
+    }
+
+    /**
+     * 다음문항 이동
+     * */
+    function moveToNext() {
+        selectedSeq += 1; // 다음문항 이동
+        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+        window.api.response('selfResponse', (data) => { // question 받아오기 결과
+            questionList = data; // questionList 업데이트
+            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+            if (questionList[selectedSeq - 1].type === '객관식') {
+                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else {
+                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+            }
+
+            // 리스너 삭제
+            window.api.removeResponse('evalSaveResponse');
+            window.api.removeResponse('selfResponse');
+        });
     }
 
     /**
@@ -187,7 +161,7 @@
                 <p>{questionList[selectedSeq - 1].question}</p>
                 <ul>
                     {#each splitArray(questionList[selectedSeq - 1].evidence) as list}
-                    <li>{list}</li>
+                        <li>{list}</li>
                     {/each}
                 </ul>
             </div>
