@@ -31,13 +31,14 @@
     function prev() {
         if (selectedSeq === 1) {
             alert('마지막')
-        }
-        selectedSeq -= 1;
-        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-        if (questionList[selectedSeq - 1].type === '객관식') {
-            checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
         } else {
-            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
+            selectedSeq -= 1;
+            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+            if (questionList[selectedSeq - 1].type === '객관식') {
+                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else {
+                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
+            }
         }
     }
 
@@ -52,9 +53,7 @@
         };
         if (selectedSeq === questionList.length) {
             alert('마지막')
-        }
-
-        if (questionList[selectedSeq - 1].type === '객관식') {
+        }else if (questionList[selectedSeq - 1].type === '객관식') {
             // 답변 체크 된 경우 저장 후 다음문항 이동
             if (checkedAnswer !== 0) {
                 data = {
@@ -150,6 +149,19 @@
         checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 객관식 답변 리스트
     }
+
+    document.addEventListener('keyup', (e) => {
+        if (e.code.startsWith('Digit') || e.code.startsWith('Numpad')) {
+            if (questionList[selectedSeq - 1].type === '객관식') {
+                checkedAnswer = Number(e.key);
+            }
+        } else {
+            switch (e.code) {
+                case 'ArrowRight': case 'Enter': next(); break;
+                case 'ArrowLeft': prev(); break;
+            }
+        }
+    })
 </script>
 
 <div class="modal-overlay" on:click={() => {isModalShow = false;}}>
