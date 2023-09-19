@@ -8,11 +8,11 @@
   "author": "Souleh Shaikh <soulehshaikh99@gmail.com>",
   "build": {
     "icon": "public/favicon.png",
-    "productName": "Svelte and Electron App",
+    "productName": "SelfEvaluation",
     "files": [
       "public/**/*",
-      "main.js",
-      "preload.js"
+      "scripts/**/*",
+      "electron/**"
     ],
     "win": {},
     "linux": {},
