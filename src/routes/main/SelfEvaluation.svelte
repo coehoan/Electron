@@ -75,20 +75,44 @@
         </div>
     </div>
 
-    <div style="margin-top: 30px">
+    <!--<div style="margin-top: 30px">
         <b>기관명: </b><span>{$companyName}</span>
         <b>진행: </b><span>{selfProgress} / {questionList.length}</span>
         <b>자체평가: </b><span>{selfScore} / {totalScore}</span>
         <b>관리: </b><span>{selfManage} / {totalManage}</span>
         <b>기술: </b><span>{selfTech} / {totalTech}</span>
         <b>위기: </b><span>{selfCrisis} / {totalCrisis}</span>
+    </div>-->
+    <div style="margin-top: 30px">
+        <b>진행도: {selfProgress} / {questionList.length}</b>
+        <table style="width: 100%">
+            <thead>
+            <tr style="background-color: black; color: white; height: 30px;">
+                <th width="20%">구분</th>
+                <th width="20%">총점</th>
+                <th width="20%">관리</th>
+                <th width="20%">기술</th>
+                <th width="20%">위기대응</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr style="text-align: center">
+                <td>자체평가</td>
+                <td>{selfScore} / {totalScore}</td>
+                <td>{selfManage} / {totalManage}</td>
+                <td>{selfTech} / {totalTech}</td>
+                <td>{selfCrisis} / {totalCrisis}</td>
+            </tr>
+            </tbody>
+        </table>
     </div>
+
     <div style="display: flex; justify-content: end; margin-top: 30px">
         <button on:click={submit}>최종제출</button>
     </div>
     <table style="width: 100%">
         <thead>
-        <tr style="background-color: black; color: white">
+        <tr style="background-color: black; color: white; height: 50px;">
             <th width="5%">순번</th>
             <th width="15%">항목번호</th>
             <th width="10%">배점</th>
@@ -98,7 +122,7 @@
         </thead>
         <tbody>
         {#each questionList as list, i}
-            <tr on:click={() => {openModal(i)}} style="background-color: {list.self_score === '' ? 'darkcyan' : 'white'}">
+            <tr on:click={() => {openModal(i)}} style="height: 50px; text-align: center; background-color: {list.self_score === '' ? 'darkcyan' : 'white'}">
                 <td>{list.id}</td>
                 <td>{list.num}</td>
                 <td>{list.point}</td>
@@ -111,11 +135,4 @@
 </main>
 
 <style>
-    tr {
-        height: 50px;
-    }
-    td {
-        text-align: center;
-        width: 150px;
-    }
 </style>
