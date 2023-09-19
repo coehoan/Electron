@@ -4,7 +4,6 @@
     import Setting from "../../lib/conponents/Setting.svelte";
 
     let isSettingShow = false;
-    let isUploadShow = false;
 
     window.api.response('mainResponse', (data) => {
         $companyName = data.name;
@@ -30,7 +29,7 @@
         </div>
     </div>
     {#if isSettingShow}
-        <Setting bind:isSettingShow={isSettingShow} bind:isUploadShow={isUploadShow}/>
+        <Setting bind:isSettingShow={isSettingShow}/>
     {/if}
     <p on:click={() => {push('/info')}}>기관정보</p>
     <p on:click={() => {push('/self')}}>자체평가</p>
