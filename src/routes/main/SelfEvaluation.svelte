@@ -3,6 +3,7 @@
     import {push} from "svelte-spa-router";
     import {onDestroy, onMount} from "svelte";
     import EvaluationModal from "./EvaluationModal.svelte";
+    import {checkSelfScores} from "../../../scripts/util/common";
 
     let questionList = [];
     $: selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
@@ -33,10 +34,15 @@
      * */
     function submit() {
         // 미응답 항목 체크
-        if (questionList.every((e) => { e.self_score !== ''})) {
-            window.api.request('exportFile')
-            alert('제출완료')
-        } else alert('답변이 완료되지 않았습니다.')
+        if (checkSelfScores(questionList)) {
+            window.api.request('exportFile');
+            window.api.response('fileResponse', (data) => {
+                if (data) {
+                    alert('제출완료');
+                    window.api.removeResponse('fileResponse')
+                }
+            })
+        } else alert('답변이 완료되지 않았습니다.');
     }
 
     /**

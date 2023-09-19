@@ -82,7 +82,8 @@
                     id: selectedSeq,
                     self_result: values.join(';'),
                     // TODO: 주관식 답변 점수 스크립트 처리
-                    self_score: 'script 처리 후 입력',
+                    // self_score: 'script 처리 후 입력',
+                    self_score: 1,
                     memo: questionList[selectedSeq - 1].memo || ''
                 };
                 saveAndMoveToNext(data);

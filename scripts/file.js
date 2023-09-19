@@ -58,6 +58,7 @@ module.exports = {
                                 }).then((result) => {
                                     path = result.filePaths[0]; // 지정 경로
                                     fs.writeFileSync(path + '/result.json', JSON.stringify(obj)); // 해당 경로로 result.json 파일 생성
+                                    event.sender.send('fileResponse', true)
                                 })
                             }
                         })

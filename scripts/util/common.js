@@ -5,8 +5,18 @@ export function getCurrentYear() {
     return new Date().getFullYear();
 }
 
+/**
+ * 문자열 구분자로 자르기 ( ; )
+ * */
 export function splitArray(array) {
     return array.split(';');
+}
+
+/**
+ * self_score에 빈값 있는지 체크
+ * */
+export function checkSelfScores(data) {
+    return data.some(item => !!item.self_score);
 }
 
 /**
