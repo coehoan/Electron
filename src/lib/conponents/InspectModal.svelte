@@ -1,11 +1,11 @@
 <script>
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
-    import {prevent_default} from "svelte/internal";
 
     let answerList = [];
     let selfSubAnswerList = [];
     let inspectSubAnswerList = [];
+    let fileList = [];
     let selfCheckedAnswer = 0;
     let inspectCheckedAnswer = 0;
     let isCommentShow = false;
@@ -163,6 +163,14 @@
             }
         }
     }
+
+    function saveInspectFile() {
+        window.api.request('saveInspectFile', selectedSeq);
+        window.api.response('inspectSaveFileResponse', (data) => {
+            fileList = [...fileList, data];
+            window.api.removeResponse('inspectSaveFileResponse');
+        })
+    }
 </script>
 
 <div class="modal-overlay" on:click={() => {isModalShow = false;}}>
@@ -267,9 +275,15 @@
 
                     <div style="font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
-                        <div style="width: 91%; border: 1px solid black"></div>
+                        <div style="width: 91%; height: 65px; border: 1px solid black; padding: 10px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
+                            {#if fileList.length > 0}
+                                {#each fileList as list}
+                                    <span>{list}</span>
+                                {/each}
+                            {/if}
+                        </div>
                         <div style="width: 9%; text-align: center">
-                            <button>첨부</button>
+                            <button on:click={saveInspectFile}>첨부</button>
                             <button>삭제</button>
                         </div>
                     </div>

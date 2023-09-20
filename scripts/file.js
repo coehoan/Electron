@@ -2,6 +2,8 @@ const {ipcMain, dialog} = require('electron');
 const sqlite3 = require('sqlite3');
 const fs = require('fs');
 const {mainWindow} = require('../electron/main');
+const {basename} = require('path')
+const path = require('path')
 
 let db;
 
@@ -65,6 +67,27 @@ module.exports = {
                     }
                 })
             }
+        })
+    }),
+    saveInspectFile: ipcMain.on('saveInspectFile', (event, args) => {
+        db = new sqlite3.Database('./db/evaluation.db');
+        dialog.showOpenDialog(mainWindow, {
+            properties: ['openFile'],
+            title: '파일 업로드'
+        }).then(async (result) => {
+            let filePath = result.filePaths[0]; // 선택된 파일 경로
+            let fileName = basename(filePath); // 선택된 파일 이름
+            let savePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
+            // 저장 경로에 selectedSeq 폴더가 없으면 해당 폴더 생성
+            if (!fs.existsSync(savePath + args)) {
+                fs.mkdirSync(savePath + args)
+            }
+
+            fs.copyFile(filePath, `${savePath}${args}\\${fileName}`, (err) => {
+                if (err) {
+                    console.log('Inspect file upload error:: ', err.message);
+                } else event.sender.send('inspectSaveFileResponse', fileName);
+            });
         })
     })
 }

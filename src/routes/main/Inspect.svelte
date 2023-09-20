@@ -103,7 +103,7 @@
     </div>
 
     <div style="display: flex; justify-content: end; margin-top: 30px">
-        <button on:click={submit}>최종제출</button>
+        <button on:click={submit}>Export</button>
     </div>
     <table style="width: 100%">
         <thead>
