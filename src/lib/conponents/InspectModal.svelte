@@ -4,7 +4,8 @@
     import {prevent_default} from "svelte/internal";
 
     let answerList = [];
-    let subAnswerList = [];
+    let selfSubAnswerList = [];
+    let inspectSubAnswerList = [];
     let selfCheckedAnswer = 0;
     let inspectCheckedAnswer = 0;
     let isCommentShow = false;
@@ -26,13 +27,7 @@
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
-            if (questionList[selectedSeq - 1].type === '객관식') {
-                // selfCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
-                selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
-            } else {
-                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-            }
+            updateAnswer();
         }
     })
 
@@ -52,12 +47,7 @@
         if (selectedSeq !== 1) {
             selectedSeq = selectedSeq - 1;
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === '객관식') {
-                selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
-            } else {
-                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
-            }
+            updateAnswer();
         }
     }
 
@@ -81,7 +71,6 @@
         } else if (questionList[selectedSeq - 1].type === '주관식') {
             let inputs = document.getElementsByName('answer');
             let values = Array.from(inputs, input => input.value);
-
             if (values.every(e => e !== '')) {
                 data = {
                     id: selectedSeq,
@@ -131,12 +120,7 @@
         window.api.response('selfResponse', (data) => { // question 받아오기 결과
             questionList = data; // questionList 업데이트
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === '객관식') {
-                selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-                inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
-            } else {
-                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-            }
+            updateAnswer();
             // 리스너 삭제
             window.api.removeResponse('inspectSaveResponse');
             window.api.removeResponse('selfResponse');
@@ -147,13 +131,22 @@
      * 상단 셀렉트 박스로 문항 선택 시 해당 문항으로 이동
      * */
     function selectQuestion() {
-        selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-        inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 객관식 답변 리스트
+        updateAnswer();
     }
 
     function popUpComment() {
         isCommentShow = true;
+    }
+
+    function updateAnswer() {
+        if (questionList[selectedSeq - 1].type === '객관식') {
+            selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
+        } else {
+            selfSubAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+            inspectSubAnswerList = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'].split(';') : questionList[selectedSeq - 1]['inspect_result'].split(';'); // 주관식 답변 리스트
+        }
     }
 
     function keyboardEvent(e) {
@@ -222,7 +215,6 @@
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
                                             <input type="radio" value="{i + 1}" bind:group={selfCheckedAnswer} disabled/>
-<!--                                            <input type="radio" value="{i + 1}" bind:group={selfCheckedAnswer} disabled/>-->
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -234,7 +226,7 @@
                             {#each answerList as list, i}
                                 <div style="display: flex; justify-content: space-between">
                                     <span>{list[`answer${i+1}`]}</span>
-                                    <input name="answer" bind:value={subAnswerList[i]} type="text"/>
+                                    <input bind:value={selfSubAnswerList[i]} type="text"/>
                                 </div>
                             {/each}
                         {/if}
@@ -265,7 +257,7 @@
                             {#each answerList as list, i}
                                 <div style="display: flex; justify-content: space-between">
                                     <span>{list[`answer${i+1}`]}</span>
-                                    <input name="answer" bind:value={subAnswerList[i]} type="text"/>
+                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text"/>
                                 </div>
                             {/each}
                         {/if}
