@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-let responseChannels = ['testResponse', 'mainResponse', 'step1Response', 'step2Response', 'step2CompanyList', 'step3Response', 'infoResponse', 'adminResponse', 'selfResponse', 'evalSaveResponse', 'fileResponse'];
-let requestChannels = ['existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo', 'importFile', 'exportFile', 'saveAnswer'];
+let responseChannels = ['testResponse', 'mainResponse', 'step1Response', 'step2Response', 'step2CompanyList', 'step3Response', 'infoResponse', 'adminResponse', 'selfResponse', 'evalSaveResponse', 'fileResponse', 'inspectResponse', 'inspectSaveResponse'];
+let requestChannels = ['existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo', 'importFile', 'exportFile', 'saveSelfAnswer', 'saveInspectAnswer'];
 contextBridge.exposeInMainWorld(
     "api", {
         response: (channel, func) => {

@@ -58,7 +58,7 @@
             id: '',
             self_result: '',
             self_score: '',
-            memo: ''
+            self_memo: ''
         };
          if (questionList[selectedSeq - 1].type === '객관식') {
             // 답변 체크 된 경우 저장 후 다음문항 이동
@@ -67,7 +67,7 @@
                     id: selectedSeq,
                     self_result: checkedAnswer,
                     self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`],
-                    memo: questionList[selectedSeq - 1].memo || ''
+                    self_memo: questionList[selectedSeq - 1].self_memo || ''
                 };
                 saveAndMoveToNext(data);
             } else {
@@ -84,7 +84,7 @@
                     // TODO: 주관식 답변 점수 스크립트 처리
                     // self_score: 'script 처리 후 입력',
                     self_score: 1,
-                    memo: questionList[selectedSeq - 1].memo || ''
+                    self_memo: questionList[selectedSeq - 1].self_memo || ''
                 };
                 saveAndMoveToNext(data);
             } else {
@@ -98,7 +98,7 @@
      * */
     function saveAndMoveToNext(data) {
         // moveToNext();
-        window.api.request('saveAnswer', data); // data 저장
+        window.api.request('saveSelfAnswer', data); // data 저장
         window.api.response('evalSaveResponse', (result) => { // 저장 결과
             if (result) {
                 moveToNext();
@@ -166,12 +166,12 @@
 </script>
 
 <div class="modal-overlay" on:click={() => {isModalShow = false;}}>
-    <div style="width: 100%; height: 700px; background-color: white; border: 1px solid black" on:click={preventModalClose}>
+    <div style="width: 100%; min-height: 700px; background-color: white; border: 1px solid black" on:click={preventModalClose}>
         <div on:click={preventModalClose} style="padding: 5px">
             <!-- Modal contents start -->
             <div style="display: flex; justify-content: space-between">
                 <div style="display: flex; align-items: center">
-                    <select bind:value={selectedSeq} on:change={selectQuestion}>
+                    <select bind:value={selectedSeq} on:change={selectQuestion} on:keydown={(e) => {e.preventDefault()}}>
                         {#each questionList as list}
                             <option value="{list.id}">{list.num}</option>
                         {/each}
@@ -200,7 +200,7 @@
                     {/each}
                 </ul>
             </div>
-            <h3>답변</h3>
+            <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">답변</div>
             <div style="width: 60%; height: 100%; border: 1px solid black; margin-top: 10px; padding: 10px">
                 <!-- 객관식 -->
                 {#if questionList[selectedSeq - 1].type === '객관식'}
@@ -225,9 +225,8 @@
                     {/each}
                 {/if}
             </div>
-            <h3>비고</h3>
-<!--            <div style="width: 60%; height: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px"></div>-->
-            <textarea id="textarea" style="width: 62%; height: 100%; min-height: 100px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].memo}></textarea>
+            <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">비고</div>
+            <textarea id="textarea" style="width: 62%; height: 100%; min-height: 100px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].self_memo}></textarea>
             <div style="display:flex; justify-content: end; margin-top: 20px; margin-right: 50px; gap: 20px">
                 <h1 style="cursor: pointer" on:click={prev}>←</h1>
                 <h1 style="cursor: pointer" on:click={next}>→</h1>

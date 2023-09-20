@@ -4,7 +4,7 @@ const sqlite3 = require('sqlite3');
 let db;
 
 module.exports = {
-    evalRequest: (channel, handlers) => ipcMain.on(channel, handlers),
+    selfEvalRequest: (channel, handlers) => ipcMain.on(channel, handlers),
 
     /**
      * 평가문항 데이터 불러오기
@@ -25,11 +25,11 @@ module.exports = {
     /**
      * 평가 답변 저장
      * */
-    saveAnswer: ipcMain.on('saveAnswer', (event, args) => {
+    saveSelfAnswer: ipcMain.on('saveSelfAnswer', (event, args) => {
         db = new sqlite3.Database('./db/evaluation.db');
         db.run(`
             UPDATE questions
-            SET self_result = '${args.self_result}', self_score = '${args.self_score}', memo = '${args.memo}'
+            SET self_result = '${args.self_result}', self_score = '${args.self_score}', self_memo = '${args.self_memo}'
             WHERE id = ${args.id}
         `, (err) => {
             if (err) {

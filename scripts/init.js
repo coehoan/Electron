@@ -67,7 +67,8 @@ module.exports = {
                         stalenessYn TEXT,
                         evidence TEXT NULL,
                         comment TEXT NULL,
-                        memo TEXT NULL)
+                        self_memo TEXT NULL,
+                        inspect_memo TEXT NULL)
                 `);
                     db.run(`
                     CREATE TABLE IF NOT EXISTS company (
@@ -97,7 +98,7 @@ module.exports = {
                 `);
                     res.questions.forEach((e) => {
                         db.run(`
-                        INSERT INTO questions (num, type, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score, stalenessYn, evidence, comment)
+                        INSERT INTO questions (num, type, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score, stalenessYn, evidence, comment, self_memo, inspect_memo)
                         VALUES(
                             '${e.num}',
                             '${e.type}',
@@ -119,7 +120,10 @@ module.exports = {
                             '${e.inspect_score}',
                             '${e.stalenessYn}',
                             '${e.evidence}',
-                            '${e.comment}')
+                            '${e.comment}',
+                            '${e.self_memo}',
+                            '${e.inspect_memo}'
+                            )
                     `);
                     })
                     res.company.forEach((e) => {

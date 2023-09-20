@@ -1,6 +1,6 @@
 <script>
     import {onDestroy, onMount} from "svelte";
-    import EvaluationModal from "../../lib/conponents/EvaluationModal.svelte";
+    import SelfEvaluationModal from "../../lib/conponents/SelfEvaluationModal.svelte";
     import {checkSelfScores} from "../../../scripts/util/common";
     import Header from "../../lib/layout/Header.svelte";
 
@@ -56,7 +56,7 @@
 
 <main>
     {#if isModalShow}
-        <EvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
+        <SelfEvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
     <h1>자체평가</h1>
     <Header {title}/>
