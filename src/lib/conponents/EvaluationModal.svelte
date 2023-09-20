@@ -27,8 +27,8 @@
     })
 
     onDestroy(() => {
-        document.removeEventListener('keyup', keyboardEvent);
         // 리스너 삭제
+        document.removeEventListener('keyup', keyboardEvent);
         window.api.removeResponse('evalSaveResponse');
         window.api.removeResponse('selfResponse');
     })
