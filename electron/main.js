@@ -2,7 +2,6 @@ const {app, BrowserWindow, ipcMain, dialog} = require('electron');
 const path = require('path');
 const serve = require('electron-serve');
 const loadURL = serve({directory: 'public'});
-const fs = require('fs');
 require('./module');
 
 let mainWindow;
@@ -42,8 +41,6 @@ function createWindow() {
     mainWindow.once('ready-to-show', () => {
         mainWindow.show()
     });
-
-    fileDirCheck();
 }
 
 app.on('ready', createWindow);
@@ -55,13 +52,3 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
     if (mainWindow === null) createWindow()
 });
-
-/**
- * /static/files 폴더 체크
- * */
-function fileDirCheck() {
-    let filesPath = path.join(__dirname, '../static/files');
-    if (fs.existsSync(filesPath)) {
-        fs.rmdirSync(filesPath, {recursive: true});
-    }
-}

@@ -23,6 +23,7 @@ module.exports = {
      * 평가지표 파일 업로드
      * */
     fileUpload: ipcMain.on('fileUpload', (event, args) => {
+        fileDirCheck();
         try {
             // 파일 업로드 팝업 open
             dialog.showOpenDialog(mainWindow, {
@@ -218,4 +219,14 @@ async function readFile(filepath) {
             }
         })
     })
+}
+
+/**
+ * /static/files 폴더 체크
+ * */
+function fileDirCheck() {
+    let filesPath = path.join(__dirname, '../static/files');
+    if (fs.existsSync(filesPath)) {
+        fs.rmdirSync(filesPath, {recursive: true});
+    }
 }

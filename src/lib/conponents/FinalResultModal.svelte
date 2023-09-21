@@ -95,7 +95,8 @@
      * 현장실사 첨부파일 리스트 가져오기
      * */
     function getFileList() {
-        window.api.request('getFileList', selectedSeq);
+        let path = '../static/files/inspect/';
+        window.api.request('getFileList', {seq: selectedSeq, path: path});
         window.api.response('fileListResponse', (data) => {
             fileList = !!data ? data : [];
             window.api.removeResponse('fileListResponse');

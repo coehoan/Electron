@@ -2,8 +2,8 @@ const {ipcMain, dialog} = require('electron');
 const sqlite3 = require('sqlite3');
 const fs = require('fs');
 const {mainWindow} = require('../electron/main');
-const {basename} = require('path')
-const path = require('path')
+const {basename} = require('path');
+const path = require('path');
 
 let db;
 
@@ -87,8 +87,8 @@ module.exports = {
         })
     }),
     getFileList: ipcMain.on('getFileList', (event, args) => {
-        let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
-        fs.readdir(filePath + args, (err, files) => {
+        let filePath = path.join(__dirname, args.path); // 저장 경로
+        fs.readdir(filePath + args.seq, (err, files) => {
             event.sender.send('fileListResponse', files);
         })
     }),
@@ -125,8 +125,38 @@ module.exports = {
                     `);
                     })
                 })
+
+                // 저장 경로에 폴더가 없으면 해당 폴더 생성
+                let filePath = result.filePaths[0];
+                let staticPath = path.join(__dirname, '../static');
+                let filesPath = path.join(__dirname, '../static/files');
+                let resultPath = path.join(__dirname, '../static/files/result');
+                let savePath = path.join(__dirname, '../static/files/result/'); // 저장 경로
+                let year = new Date().getFullYear();
+
+                if (!fs.existsSync(staticPath)) {
+                    fs.mkdirSync(staticPath)
+                }
+                if (!fs.existsSync(filesPath)) {
+                    fs.mkdirSync(filesPath)
+                }
+                if (!fs.existsSync(resultPath)) {
+                    fs.mkdirSync(resultPath)
+                }
+                if (!fs.existsSync(savePath + year)) {
+                    fs.mkdirSync(savePath + year);
+                }
+
+                // /static/files/result/해당년도에 최종 결과 파일 복사
+                fs.copyFile(filePath, `${savePath}${year}\\result.json`, (err) => {
+                    if (err) {
+                        console.log('Inspect file upload error:: ', err.message);
+                    }
+                });
+
+
                 event.sender.send('getFinalFileResponse', true);
-            })
+            });
         } catch (e) {
             event.sender.send('getFinalFileResponse', false);
         }
