@@ -21,7 +21,6 @@
 </script>
 
 <main>
-    <h1>메인</h1>
     <Header {title}/>
     <p on:click={() => {push('/info')}}>기관정보</p>
     <p on:click={() => {push('/self')}}>자체평가</p>

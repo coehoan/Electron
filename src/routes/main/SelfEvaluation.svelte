@@ -59,7 +59,6 @@
     {#if isModalShow}
         <SelfEvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
-    <h1>자체평가</h1>
     <Header {title}/>
     <div style="margin-top: 30px">
         <b>진행도: {selfProgress} / {questionList.length}</b>

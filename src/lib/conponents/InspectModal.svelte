@@ -116,6 +116,7 @@
                 selectedSeq = 1;
                 isModalShow = false;
             })
+            document.getElementsByTagName('body')[0].style.overflow = 'auto';
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close

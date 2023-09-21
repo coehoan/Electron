@@ -69,7 +69,6 @@
     {#if isModalShow}
         <InspectModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
-    <h1>현장실사</h1>
     <Header {title}/>
 
     <div style="margin-top: 30px">

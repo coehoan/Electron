@@ -80,7 +80,6 @@
 </script>
 
 <main>
-    <h1>기관정보</h1>
     <Header {title}/>
     <h3>기관정보</h3>
     {#if companyInfo.length > 0}
