@@ -54,7 +54,8 @@
      * */
     function openModal(seq) {
         selectedSeq = seq + 1;
-        isModalShow = true
+        isModalShow = true;
+        document.getElementsByTagName('body')[0].style.overflow = 'hidden';
     }
 
     function getColor(list) {

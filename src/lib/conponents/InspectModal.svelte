@@ -141,6 +141,9 @@
         getFileList();
     }
 
+    /**
+     * 평가지표 해설 modal창 오픈
+     * */
     function popUpComment() {
         isCommentShow = true;
     }
@@ -236,7 +239,7 @@
     }
 </script>
 
-<div class="modal-overlay" on:click={() => {isModalShow = false;}}>
+<div class="modal-overlay" on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
     <div style="width: 100%; min-height: 700px; background-color: white; border: 1px solid black" on:click={preventModalClose}>
         <div on:click={preventModalClose} style="padding: 5px">
             <!-- Modal contents start -->

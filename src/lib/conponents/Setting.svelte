@@ -3,6 +3,9 @@
     import {onDestroy} from "svelte";
 
     export let isSettingShow = true;
+    export function preventModalClose(event) {
+        event.stopPropagation(); // 모달 클릭 이벤트 중지
+    }
 
     function fileUpload() {
         window.api.request('fileUpload');
@@ -20,8 +23,8 @@
     })
 </script>
 
-<div class="modal-overlay">
-    <div style="width: 40%; height: 300px; border: 1px solid black; background-color: white">
+<div class="modal-overlay" on:click={() => {isSettingShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
+    <div style="width: 40%; height: 300px; border: 1px solid black; background-color: white" on:click={preventModalClose}>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid black; padding: 5px">
             <div>환경설정</div>
             <div style="margin-right: 10px; cursor:pointer; font-size: 20px" on:click={() => {isSettingShow = false}}>X</div>
@@ -39,10 +42,10 @@
 <style>
     .modal-overlay {
         width: 98.5%;
+        height: 100%;
         position: fixed;
         display: flex;
         justify-content: center;
         align-items: center;
-        top: 40%;
     }
 </style>

@@ -50,7 +50,8 @@
     * */
     function openModal(seq) {
         selectedSeq = seq + 1;
-        isModalShow = true
+        isModalShow = true;
+        document.getElementsByTagName('body')[0].style.overflow = 'hidden';
     }
 </script>
 
@@ -60,15 +61,6 @@
     {/if}
     <h1>자체평가</h1>
     <Header {title}/>
-
-    <!--<div style="margin-top: 30px">
-        <b>기관명: </b><span>{$companyName}</span>
-        <b>진행: </b><span>{selfProgress} / {questionList.length}</span>
-        <b>자체평가: </b><span>{selfScore} / {totalScore}</span>
-        <b>관리: </b><span>{selfManage} / {totalManage}</span>
-        <b>기술: </b><span>{selfTech} / {totalTech}</span>
-        <b>위기: </b><span>{selfCrisis} / {totalCrisis}</span>
-    </div>-->
     <div style="margin-top: 30px">
         <b>진행도: {selfProgress} / {questionList.length}</b>
         <table style="width: 100%">

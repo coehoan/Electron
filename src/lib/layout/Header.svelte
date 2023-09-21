@@ -9,6 +9,9 @@
 
 </script>
 
+{#if isSettingShow}
+    <Setting bind:isSettingShow={isSettingShow}/>
+{/if}
 <div style="border: 1px solid black; display: flex; justify-content: space-between; padding: 0 10px">
     <div style="display:flex; align-items: center; gap: 5px">
         {#if path !== '/main'}
@@ -18,16 +21,13 @@
         <button on:click={() => {push('/self')}}>자체평가</button>
         <button on:click={() => {push('/inspect')}}>현장실사</button>
         <button on:click={() => {push('/result')}}>평가관리</button>
-        <button on:click={() => {isSettingShow = true}}>환경설정</button>
+        <button on:click={() => {isSettingShow = true; document.getElementsByTagName('body')[0].style.overflow = 'hidden'}}>환경설정</button>
     </div>
     <div style="display:flex; gap: 5px">
         <p>{$year}년 </p>
         <p>{$companyName}</p>
         <p>{title}</p>
     </div>
-    {#if isSettingShow}
-        <Setting bind:isSettingShow={isSettingShow}/>
-    {/if}
 </div>
 
 <style>
