@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-let requestChannels = ['existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo', 'importFile', 'exportFile', 'saveSelfAnswer', 'saveInspectAnswer', 'saveInspectFile', 'getFileList', 'deleteFile', 'getFinalResult'];
-let responseChannels = ['testResponse', 'mainResponse', 'step1Response', 'step2Response', 'step2CompanyList', 'step3Response', 'infoResponse', 'adminResponse', 'selfResponse', 'evalSaveResponse', 'fileResponse', 'inspectResponse', 'inspectSaveResponse', 'inspectSaveFileResponse', 'fileListResponse', 'deleteFileResponse', 'companyResultResponse'];
+let requestChannels = ['existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo', 'importFile', 'exportFile', 'saveSelfAnswer', 'saveInspectAnswer', 'saveInspectFile', 'getFileList', 'deleteFile', 'getFinalResult', 'getFinalFile'];
+let responseChannels = ['testResponse', 'mainResponse', 'step1Response', 'step2Response', 'step2CompanyList', 'step3Response', 'infoResponse', 'adminResponse', 'selfResponse', 'evalSaveResponse', 'fileResponse', 'inspectResponse', 'inspectSaveResponse', 'inspectSaveFileResponse', 'fileListResponse', 'deleteFileResponse', 'companyResultResponse', 'getFinalFileResponse'];
 contextBridge.exposeInMainWorld(
     "api", {
         response: (channel, func) => {

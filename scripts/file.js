@@ -33,7 +33,7 @@ module.exports = {
                             } else {
                                 company = row;
                                 obj = {
-                                    'question': question,
+                                    'questions': question,
                                     'admin': admin,
                                     'company': company
                                 }
@@ -102,7 +102,34 @@ module.exports = {
         })
     }),
     getFinalFile: ipcMain.on('getFinalFile', (event, args) => {
-
+        try {
+            dialog.showOpenDialog(mainWindow, {
+                properties: ['openFile'],
+                title: '파일 업로드'
+            }).then(async (result) => {
+                let res = await readFile(result.filePaths[0]);
+                db = new sqlite3.Database('./db/evaluation.db');
+                db.serialize((err, event) => {
+                    res.questions.forEach((e) => {
+                        db.run(`
+                        UPDATE questions
+                        SET inspect_result = '${e.inspect_result}', inspect_score = '${e.inspect_score}', inspect_memo = '${e.inspect_memo}'
+                        WHERE id = ${e.id}
+                    `);
+                    })
+                    res.company.forEach((e) => {
+                        db.run(`
+                        UPDATE company
+                        SET activity_value = '${e.activity_value}', training_max = '${e.training_max}', training_value = '${e.training_value}', protect_max = '${e.protect_max}', protect_value = '${e.protect_value}', appeal_value = '${e.appeal_value}'  
+                        WHERE id = ${args}
+                    `);
+                    })
+                })
+                event.sender.send('getFinalFileResponse', true);
+            })
+        } catch (e) {
+            event.sender.send('getFinalFileResponse', false);
+        }
     })
 }
 
