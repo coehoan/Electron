@@ -78,9 +78,21 @@ module.exports = {
             let filePath = result.filePaths[0]; // 선택된 파일 경로
             let fileName = basename(filePath); // 선택된 파일 이름
             let savePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
-            // 저장 경로에 selectedSeq 폴더가 없으면 해당 폴더 생성
+            // 저장 경로에 폴더가 없으면 해당 폴더 생성
+            let staticPath = path.join(__dirname, '../static');
+            let filesPath = path.join(__dirname, '../static/files');
+            let inspectPath = path.join(__dirname, '../static/files/inspect');
+            if (!fs.existsSync(staticPath)) {
+                fs.mkdirSync(staticPath)
+            }
+            if (!fs.existsSync(filesPath)) {
+                fs.mkdirSync(filesPath)
+            }
+            if (!fs.existsSync(inspectPath)) {
+                fs.mkdirSync(inspectPath)
+            }
             if (!fs.existsSync(savePath + args)) {
-                fs.mkdirSync(savePath + args)
+                fs.mkdirSync(savePath + args);
             }
 
             fs.copyFile(filePath, `${savePath}${args}\\${fileName}`, (err) => {
@@ -88,6 +100,21 @@ module.exports = {
                     console.log('Inspect file upload error:: ', err.message);
                 } else event.sender.send('inspectSaveFileResponse', fileName);
             });
+        })
+    }),
+    getFileList: ipcMain.on('getFileList', (event, args) => {
+        let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
+        fs.readdir(filePath + args, (err, files) => {
+            event.sender.send('fileListResponse', files);
+        })
+    }),
+    deleteFile: ipcMain.on('deleteFile', (event, args) => {
+        let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
+        fs.unlink(`${filePath}\\${args.seq}\\${args.fileName}`, (err) => {
+            if (err) {
+                console.log('File delete error:: ', err.message);
+                event.sender.send('deleteFileResponse', false);
+            } else event.sender.send('deleteFileResponse', true)
         })
     })
 }

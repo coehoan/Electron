@@ -9,6 +9,8 @@
     let selfCheckedAnswer = 0;
     let inspectCheckedAnswer = 0;
     let isCommentShow = false;
+    let selectedFile;
+    let selectedFileName = '';
     let data = {
         id: '',
         inspect_result: '',
@@ -25,6 +27,7 @@
 
     onMount(() => {
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+        getFileList();
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
             updateAnswer();
@@ -48,6 +51,7 @@
             selectedSeq = selectedSeq - 1;
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
             updateAnswer();
+            getFileList();
         }
     }
 
@@ -121,6 +125,7 @@
             questionList = data; // questionList 업데이트
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
             updateAnswer();
+            getFileList();
             // 리스너 삭제
             window.api.removeResponse('inspectSaveResponse');
             window.api.removeResponse('selfResponse');
@@ -133,29 +138,39 @@
     function selectQuestion() {
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 객관식 답변 리스트
         updateAnswer();
+        getFileList();
     }
 
     function popUpComment() {
         isCommentShow = true;
     }
 
+    /**
+     * 답변 업데이트
+     * */
     function updateAnswer() {
         if (questionList[selectedSeq - 1].type === '객관식') {
-            selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
+            selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result'];
+            // 현장실사 답변 없는경우 자체평가 답변으로, 있는경우 해당 값으로 업데이트
             inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
         } else {
+            // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
             selfSubAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+            // 현장실사 답변 없는경우 자체평가 답변으로, 있는경우 해당 값으로 업데이트
             inspectSubAnswerList = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'].split(';') : questionList[selectedSeq - 1]['inspect_result'].split(';'); // 주관식 답변 리스트
         }
     }
 
     function keyboardEvent(e) {
-        if (document.activeElement.id !== 'textarea') {
+        if (document.activeElement.id !== 'textarea') { // textarea focus 상태일 때 해당 이벤트 제외
+            // 숫자 입력 시 객관식 답 체크
             if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter') {
                 if (questionList[selectedSeq - 1].type === '객관식') {
                     inspectCheckedAnswer = Number(e.key);
                 }
             } else {
+                // 화살표 입력 시 문항 이동
                 switch (e.code) {
                     case 'ArrowRight': case 'Enter': case 'NumpadEnter': next(); break;
                     case 'ArrowLeft': prev(); break;
@@ -164,12 +179,60 @@
         }
     }
 
+    /**
+     * 현장실사 첨부파일 리스트 가져오기
+     * */
+    function getFileList() {
+        window.api.request('getFileList', selectedSeq);
+        window.api.response('fileListResponse', (data) => {
+            fileList = !!data ? data : [];
+            window.api.removeResponse('fileListResponse');
+        })
+    }
+
+    /**
+     * 현장실사 파일 첨부
+     * */
     function saveInspectFile() {
+        // TODO: 동일 파일명 처리
         window.api.request('saveInspectFile', selectedSeq);
         window.api.response('inspectSaveFileResponse', (data) => {
             fileList = [...fileList, data];
             window.api.removeResponse('inspectSaveFileResponse');
         })
+    }
+
+    /**
+     * 파일명 선택
+     * */
+    function fileSelect(event, fileName) {
+        if (selectedFile) { // 선택 된 파일이 존재할 때
+            // 해당 파일의 backgroundColor 초기화
+            selectedFile.style.backgroundColor = '';
+        }
+        event.target.style.backgroundColor = 'lightgray'; // 해당 태그에 backgroundColor 적용
+        selectedFile = event.target;
+        selectedFileName = fileName; // 파일명 저장
+    }
+
+    /**
+     * 현장실사 파일 삭제
+     * */
+    function deleteInspectFile() {
+        if (!selectedFileName) {
+            alert('파일을 선택해주세요');
+        } else {
+            window.api.request('deleteFile', {
+                seq: selectedSeq,
+                fileName: selectedFileName
+            });
+            window.api.response('deleteFileResponse', (data) => {
+                if (data) {
+                    fileList = fileList.filter((e) => e !== selectedFileName);
+                    window.api.removeResponse('deleteFileResponse');
+                }
+            })
+        }
     }
 </script>
 
@@ -275,16 +338,16 @@
 
                     <div style="font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
-                        <div style="width: 91%; height: 65px; border: 1px solid black; padding: 10px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
+                        <div style="width: 91%; height: 65px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
                             {#if fileList.length > 0}
                                 {#each fileList as list}
-                                    <span>{list}</span>
+                                    <span style="padding: 3px; cursor:pointer;" on:click={() => {fileSelect(event, list)}}>{list}</span>
                                 {/each}
                             {/if}
                         </div>
                         <div style="width: 9%; text-align: center">
                             <button on:click={saveInspectFile}>첨부</button>
-                            <button>삭제</button>
+                            <button on:click={deleteInspectFile}>삭제</button>
                         </div>
                     </div>
 
