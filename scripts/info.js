@@ -1,6 +1,5 @@
 const {ipcMain} = require('electron');
 const sqlite3 = require('sqlite3');
-const {ca} = require("wait-on/exampleConfig");
 
 let db;
 

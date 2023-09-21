@@ -9,14 +9,6 @@
     let selfCheckedAnswer = 0;
     let inspectCheckedAnswer = 0;
     let isCommentShow = false;
-    let selectedFile;
-    let selectedFileName = '';
-    let data = {
-        id: '',
-        inspect_result: '',
-        inspect_score: '',
-        inspect_memo: ''
-    };
 
     export let isModalShow = false;
     export let questionList = [];
@@ -28,17 +20,12 @@
     onMount(() => {
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         getFileList();
-        // 자체평가 진행 한 항목일 때
-        if (questionList[selectedSeq - 1]['self_result'] !== '') {
-            updateAnswer();
-        }
+        updateAnswer();
     })
 
     onDestroy(() => {
         // 리스너 삭제
         document.removeEventListener('keyup', keyboardEvent);
-        window.api.removeResponse('inspectSaveResponse');
-        window.api.removeResponse('selfResponse');
     })
 
     document.addEventListener('keyup', keyboardEvent)
@@ -59,78 +46,16 @@
      * 다음문제
      * */
     function next() {
-         if (questionList[selectedSeq - 1].type === '객관식') {
-            // 답변 체크 된 경우 저장 후 다음문항 이동
-            if (inspectCheckedAnswer !== 0) {
-                data = {
-                    id: selectedSeq,
-                    inspect_result: inspectCheckedAnswer,
-                    inspect_score: answerList[inspectCheckedAnswer - 1][`anspoint${inspectCheckedAnswer}`],
-                    inspect_memo: questionList[selectedSeq - 1].inspect_memo || ''
-                };
-                saveAndMoveToNext(data);
-            } else {
-                moveToNext();
-            }
-        } else if (questionList[selectedSeq - 1].type === '주관식') {
-            let inputs = document.getElementsByName('answer');
-            let values = Array.from(inputs, input => input.value);
-            if (values.every(e => e !== '')) {
-                data = {
-                    id: selectedSeq,
-                    inspect_result: values.join(';'),
-                    // TODO: 주관식 답변 점수 스크립트 처리
-                    // self_score: 'script 처리 후 입력',
-                    inspect_score: 1,
-                    inspect_memo: questionList[selectedSeq - 1].inspect_memo || ''
-                };
-                saveAndMoveToNext(data);
-            } else {
-                moveToNext();
-            }
-        }
-    }
-
-    /**
-     * 답변 저장 후 다음문항 이동
-     * */
-    function saveAndMoveToNext(data) {
-        // moveToNext();
-        window.api.request('saveInspectAnswer', data); // data 저장
-        window.api.response('inspectSaveResponse', (result) => { // 저장 결과
-            if (result) {
-                moveToNext();
-            }
-        });
-    }
-
-    /**
-     * 다음문항 이동
-     * */
-    function moveToNext() {
         if (selectedSeq === questionList.length) {
             alert('마지막 문항입니다.');
-            window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-            window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                questionList = data; // questionList 업데이트
-                selectedSeq = 1;
-                isModalShow = false;
-            })
+            isModalShow = false;
             document.getElementsByTagName('body')[0].style.overflow = 'auto';
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close
         }
-        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-        window.api.response('selfResponse', (data) => { // question 받아오기 결과
-            questionList = data; // questionList 업데이트
-            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            updateAnswer();
-            getFileList();
-            // 리스너 삭제
-            window.api.removeResponse('inspectSaveResponse');
-            window.api.removeResponse('selfResponse');
-        });
+        updateAnswer();
+        getFileList();
     }
 
     /**
@@ -166,23 +91,6 @@
         }
     }
 
-    function keyboardEvent(e) {
-        if (document.activeElement.id !== 'textarea') { // textarea focus 상태일 때 해당 이벤트 제외
-            // 숫자 입력 시 객관식 답 체크
-            if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter') {
-                if (questionList[selectedSeq - 1].type === '객관식') {
-                    inspectCheckedAnswer = Number(e.key);
-                }
-            } else {
-                // 화살표 입력 시 문항 이동
-                switch (e.code) {
-                    case 'ArrowRight': case 'Enter': case 'NumpadEnter': next(); break;
-                    case 'ArrowLeft': prev(); break;
-                }
-            }
-        }
-    }
-
     /**
      * 현장실사 첨부파일 리스트 가져오기
      * */
@@ -194,48 +102,11 @@
         })
     }
 
-    /**
-     * 현장실사 파일 첨부
-     * */
-    function saveInspectFile() {
-        // TODO: 동일 파일명 처리
-        window.api.request('saveInspectFile', selectedSeq);
-        window.api.response('inspectSaveFileResponse', (data) => {
-            fileList = [...fileList, data];
-            window.api.removeResponse('inspectSaveFileResponse');
-        })
-    }
-
-    /**
-     * 파일명 선택
-     * */
-    function fileSelect(event, fileName) {
-        if (selectedFile) { // 선택 된 파일이 존재할 때
-            // 해당 파일의 backgroundColor 초기화
-            selectedFile.style.backgroundColor = '';
-        }
-        event.target.style.backgroundColor = 'lightgray'; // 해당 태그에 backgroundColor 적용
-        selectedFile = event.target;
-        selectedFileName = fileName; // 파일명 저장
-    }
-
-    /**
-     * 현장실사 파일 삭제
-     * */
-    function deleteInspectFile() {
-        if (!selectedFileName) {
-            alert('파일을 선택해주세요');
-        } else {
-            window.api.request('deleteFile', {
-                seq: selectedSeq,
-                fileName: selectedFileName
-            });
-            window.api.response('deleteFileResponse', (data) => {
-                if (data) {
-                    fileList = fileList.filter((e) => e !== selectedFileName);
-                    window.api.removeResponse('deleteFileResponse');
-                }
-            })
+    function keyboardEvent(e) {
+        // 화살표 입력 시 문항 이동
+        switch (e.code) {
+            case 'ArrowRight': case 'Enter': case 'NumpadEnter': next(); break;
+            case 'ArrowLeft': prev(); break;
         }
     }
 </script>
@@ -317,7 +188,7 @@
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer}/>
+                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer} disabled/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -335,20 +206,15 @@
                         {/if}
                     </div>
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">현장실사 메모</div>
-                    <textarea id="textarea" style="width: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].inspect_memo}></textarea>
-
-                    <div style="font-size: 20px; font-weight: bold;">파일첨부</div>
+                    <div style="min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px">{questionList[selectedSeq - 1].inspect_memo}</div>
+                    <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
-                        <div style="width: 91%; height: 65px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
+                        <div style="width: 100%; height: 65px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
                             {#if fileList.length > 0}
                                 {#each fileList as list}
-                                    <span style="padding: 3px; cursor:pointer;" on:click={() => {fileSelect(event, list)}}>{list}</span>
+                                    <span style="padding: 3px;">{list}</span>
                                 {/each}
                             {/if}
-                        </div>
-                        <div style="width: 9%; text-align: center">
-                            <button on:click={saveInspectFile}>첨부</button>
-                            <button on:click={deleteInspectFile}>삭제</button>
                         </div>
                     </div>
 

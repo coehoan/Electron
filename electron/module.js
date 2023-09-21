@@ -4,7 +4,8 @@ const {infoRequest} = require('../scripts/info');
 const {selfEvalRequest} = require('../scripts/selfEvaluation');
 const {fileRequest} = require('../scripts/file');
 const {inspectRequest} = require('../scripts/inspect');
+const {resultRequest} = require("../scripts/result");
 
 module.exports = {
-    initRequest, mainRequest, infoRequest, selfEvalRequest, fileRequest, inspectRequest
+    initRequest, mainRequest, infoRequest, selfEvalRequest, fileRequest, inspectRequest, resultRequest
 }

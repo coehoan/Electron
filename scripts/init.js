@@ -76,7 +76,13 @@ module.exports = {
                         code INTEGER,
                         name TEXT, 
                         type TEXT,
-                        address TEXT)
+                        address TEXT,
+                        activity_value REAL,
+                        training_max INTEGER,
+                        training_value REAL,
+                        protect_max INTEGER,
+                        protect_value REAL,
+                        appeal_value REAL)
                 `);
                     db.run(`
                     CREATE TABLE IF NOT EXISTS basic_info (
@@ -128,12 +134,18 @@ module.exports = {
                     })
                     res.company.forEach((e) => {
                         db.run(`
-                        INSERT INTO company (code, name, type, address) 
+                        INSERT INTO company (code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value) 
                         VALUES(
                             '${e.code}', 
                             '${e.name}', 
                             '${e.type}', 
-                            '${e.address}')
+                            '${e.address}',
+                            '${e.activity_value}',
+                            '${e.training_max}',
+                            '${e.training_value}',
+                            '${e.protect_max}',
+                            '${e.protect_value}',
+                            '${e.appeal_value}')
                     `);
                     })
                 })

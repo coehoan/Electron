@@ -10,22 +10,6 @@ let db;
 module.exports = {
     fileRequest: (channel, handlers) => ipcMain.on(channel, handlers),
 
-    importFile: ipcMain.on('importFile', (event, args) => {
-        db = new sqlite3.Database('./db/evaluation.db');
-        dialog.showOpenDialog(mainWindow, {
-            properties: ['openFile'],
-            title: '파일 업로드'
-        }).then(async (result) => {
-            let res = await readFile(result.filePaths[0]);
-            res.forEach((e) => {
-                db.run(`insert into student(name, email) values('${e.name}', '${e.email}')`, (err) => {
-                    if (err) {
-                        console.log('File upload fail:: ', err.message);
-                    } else console.log('File upload success');
-                });
-            });
-        })
-    }),
     exportFile: ipcMain.on('exportFile', (event, args) => {
         db = new sqlite3.Database('./db/evaluation.db');
         let path;
@@ -116,6 +100,9 @@ module.exports = {
                 event.sender.send('deleteFileResponse', false);
             } else event.sender.send('deleteFileResponse', true)
         })
+    }),
+    getFinalFile: ipcMain.on('getFinalFile', (event, args) => {
+
     })
 }
 
