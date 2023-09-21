@@ -2,6 +2,7 @@ const {dialog, ipcMain} = require("electron");
 const fs = require('fs');
 const sqlite3 = require('sqlite3');
 const {mainWindow} = require('../electron/main');
+const path = require('path');
 
 let db;
 
@@ -83,7 +84,8 @@ module.exports = {
                         training_value REAL,
                         protect_max INTEGER,
                         protect_value REAL,
-                        appeal_value REAL)
+                        appeal_value REAL,
+                        completeYn TEXT)
                 `);
                     db.run(`
                     CREATE TABLE IF NOT EXISTS basic_info (
@@ -135,7 +137,7 @@ module.exports = {
                     })
                     res.company.forEach((e) => {
                         db.run(`
-                        INSERT INTO company (code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value) 
+                        INSERT INTO company (code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn) 
                         VALUES(
                             '${e.code}', 
                             '${e.name}', 
@@ -146,7 +148,8 @@ module.exports = {
                             '${e.training_value}',
                             '${e.protect_max}',
                             '${e.protect_value}',
-                            '${e.appeal_value}')
+                            '${e.appeal_value}',
+                            '${e.completeYn}')
                     `);
                     })
                 })

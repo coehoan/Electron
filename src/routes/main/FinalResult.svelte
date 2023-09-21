@@ -28,7 +28,7 @@
     $: crisisInsolvencyScore = questionList.filter(e => e.self_result !== e.inspect_result).filter(e => e.num >= 30000).reduce(acc => acc + 0.1, 0); // 위기 부실도
 
     let isModalShow = false;
-    let isSettingShow = false;
+    let isFileLoadShow = false;
     let selectedSeq = 0;
 
     onMount(() => {
@@ -89,8 +89,8 @@
     {#if isModalShow}
         <FinalResultModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
-    {#if isSettingShow}
-        <FinalResultFileLoad bind:isSettingShow={isSettingShow}/>
+    {#if isFileLoadShow}
+        <FinalResultFileLoad bind:isFileLoadShow={isFileLoadShow}/>
     {/if}
     <Header {title}/>
 
@@ -110,7 +110,7 @@
         </div>
     {/if}
         <div style="display: flex; justify-content: end; margin-top: 30px">
-            <button on:click={() => {isSettingShow = true}}>이전 데이터</button>
+            <button on:click={() => {isFileLoadShow = true}}>이전 데이터</button>
             <button on:click={getFile} style="margin-left: 5px">불러오기</button>
             {#if $isFinalListShow}
                 <button on:click={getPDF} style="margin-left: 5px">PDF 출력</button>

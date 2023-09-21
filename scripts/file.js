@@ -92,6 +92,26 @@ module.exports = {
             event.sender.send('fileListResponse', files);
         })
     }),
+    getOlderFileList: ipcMain.on('getOlderFileList', (event, args) => {
+        let filePath = path.join(__dirname, args); // 저장 경로
+        fs.readdir(filePath, (err, files) => {
+            event.sender.send('getOlderFileListResponse', files);
+        })
+    }),
+    getOlderFileData: ipcMain.on('getOlderFileData', (event, args) => {
+        let filePath = path.join(__dirname, args.path); // 저장 경로
+        if (fs.existsSync(filePath + args.seq)) {
+            fs.readdir(filePath + args.seq, async (err, files) => {
+                let fileName = files[0];
+                let res = await readFile(`${filePath}${args.seq}\\${fileName}`);
+                if (err) {
+                    console.log('Older file read error:: ', err.message);
+                } else {
+                    event.sender.send('olderFileDataResponse', res);
+                }
+            });
+        }
+    }),
     deleteFile: ipcMain.on('deleteFile', (event, args) => {
         let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
         fs.unlink(`${filePath}\\${args.seq}\\${args.fileName}`, (err) => {
@@ -120,7 +140,7 @@ module.exports = {
                     res.company.forEach((e) => {
                         db.run(`
                         UPDATE company
-                        SET activity_value = '${e.activity_value}', training_max = '${e.training_max}', training_value = '${e.training_value}', protect_max = '${e.protect_max}', protect_value = '${e.protect_value}', appeal_value = '${e.appeal_value}'  
+                        SET activity_value = '${e.activity_value}', training_max = '${e.training_max}', training_value = '${e.training_value}', protect_max = '${e.protect_max}', protect_value = '${e.protect_value}', appeal_value = '${e.appeal_value}', completeYn = '${e.completeYn}'  
                         WHERE id = ${args}
                     `);
                     })
