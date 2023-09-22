@@ -1,8 +1,9 @@
 <script>
     import {onMount} from "svelte";
-    import {year} from "../../../scripts/store/store";
+    import {isFinalListShow} from "../../../scripts/store/store";
 
     export let isFileLoadShow = true;
+    export let questionList = [];
     let olderList = [];
     let selectedYear;
     export function preventModalClose(event) {
@@ -33,11 +34,19 @@
             isFileLoadShow = false;
         } else {
             // /static/files/result/ 에 해당년도 폴더가 존재하는지 확인한다.
-            let filePath = '../static/files/result/';
+            let filePath = `../static/files/result/`;
             window.api.request('getOlderFileData', {seq: year, path: filePath});
             window.api.response('olderFileDataResponse', (data) => {
-                // 존재하면 questionList 업데이트 --> questionList를 스토어에 넣자.
-                console.log(data)
+                // 존재하면 데이터 업데이트
+                if (data) {
+                    window.api.request('getQuestionInfo');
+                    window.api.response('selfResponse', (data) => {
+                        questionList = data;
+                        window.api.removeResponse('selfResponse');
+                    })
+                    isFileLoadShow = false;
+                    $isFinalListShow = true;
+                }
             })
         }
     }

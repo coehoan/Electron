@@ -9,7 +9,7 @@ module.exports = {
     /**
      * 평가문항 데이터 불러오기
      * */
-    getMainInfo: ipcMain.on('getQuestionInfo', (event, args) => {
+    getQuestionInfo: ipcMain.on('getQuestionInfo', (event, args) => {
         db = new sqlite3.Database('./db/evaluation.db');
         db.all(`
             SELECT * FROM questions

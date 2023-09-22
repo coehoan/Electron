@@ -111,12 +111,22 @@ module.exports = {
         })
     }),
     /**
-     * 평가결과 이전년도 데이터 가져오기
+     * 평가결과 이전년도 데이터로 DB 교체
      * */
     getOlderFileData: ipcMain.on('getOlderFileData', (event, args) => {
-        let filePath = path.join(__dirname, args.path); // 저장 경로
+        let filePath = path.join(__dirname, args.path); // 해당년도 데이터 위치
+        let dbPath = path.join(__dirname, '../db/');
         if (fs.existsSync(filePath + args.seq)) {
-            fs.readdir(filePath + args.seq, async (err, files) => {
+            // 해당년도 DB 파일 복사
+            fs.copyFile(`${filePath}${args.seq}\\evaluation.db`, dbPath + 'evaluation.db', (err) => {
+                if (err) {
+                    console.log('getOlderFileData copy error:: ', err.message);
+                    event.sender.send('olderFileDataResponse', false);
+                } else {
+                    event.sender.send('olderFileDataResponse', true);
+                }
+            });
+            /*fs.readdir(filePath + args.seq, async (err, files) => {
                 let fileName = files[0];
                 let res = await readFile(`${filePath}${args.seq}\\${fileName}`);
                 if (err) {
@@ -124,7 +134,7 @@ module.exports = {
                 } else {
                     event.sender.send('olderFileDataResponse', res);
                 }
-            });
+            });*/
         }
     }),
     /**
@@ -143,7 +153,6 @@ module.exports = {
      * 최종결과 파일 불러온 뒤 DB 저장
      * */
     getFinalFile: ipcMain.on('getFinalFile', (event, args) => {
-        console.log(args)
         try {
             dialog.showOpenDialog(mainWindow, {
                 properties: ['openFile'],
@@ -185,7 +194,7 @@ module.exports = {
                         })
 
                         // 저장 경로에 폴더가 없으면 해당 폴더 생성
-                        let filePath = result.filePaths[0];
+                        let filePath = path.join(__dirname, '../db/evaluation.db');
                         let staticPath = path.join(__dirname, '../static');
                         let filesPath = path.join(__dirname, '../static/files');
                         let resultPath = path.join(__dirname, '../static/files/result');
@@ -206,7 +215,7 @@ module.exports = {
                         }
 
                         // /static/files/result/해당년도에 최종 결과 파일 복사
-                        fs.copyFile(filePath, `${savePath}${year}\\result.json`, (err) => {
+                        fs.copyFile(filePath, `${savePath}${year}\\evaluation.db`, (err) => {
                             if (err) {
                                 console.log('Inspect file upload error:: ', err.message);
                             }

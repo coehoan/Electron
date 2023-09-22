@@ -58,7 +58,7 @@
                 // 파일 로딩 성공 시 리스트 출력
                 $isFinalListShow = true;
                 // completeYn 수정
-                // static/files/result/해당년도에 파일 저장 (json? sqlite? + 현장실사 첨부파일)
+                // static/files/result/해당년도에 파일 저장 (sqlite + 현장실사 첨부파일)
             } else {
 
             }
@@ -92,7 +92,7 @@
         <FinalResultModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
     {#if isFileLoadShow}
-        <FinalResultFileLoad bind:isFileLoadShow={isFileLoadShow}/>
+        <FinalResultFileLoad bind:isFileLoadShow={isFileLoadShow} bind:questionList = {questionList}/>
     {/if}
     <Header {title}/>
 
