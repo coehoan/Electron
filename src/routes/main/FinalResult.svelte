@@ -1,7 +1,7 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
     import {onMount} from "svelte";
-    import {companySeq, isFinalListShow} from "../../../scripts/store/store";
+    import {companyCode, companySeq, isFinalListShow} from "../../../scripts/store/store";
     import FinalResultModal from "../../lib/conponents/FinalResultModal.svelte";
     import FinalResultFileLoad from "../../lib/conponents/FinalResultFileLoad.svelte";
 
@@ -57,11 +57,13 @@
                 window.api.request('getQuestionInfo');
                 // 파일 로딩 성공 시 리스트 출력
                 $isFinalListShow = true;
+                // completeYn 수정
+                // static/files/result/해당년도에 파일 저장 (json? sqlite? + 현장실사 첨부파일)
             } else {
 
             }
         })
-        window.api.request('getFinalFile', $companySeq);
+        window.api.request('getFinalFile', $companyCode);
         window.api.response('selfResponse', (data) => {
             questionList = data;
             window.api.removeResponse('selfResponse');

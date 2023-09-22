@@ -10,6 +10,9 @@ let db;
 module.exports = {
     fileRequest: (channel, handlers) => ipcMain.on(channel, handlers),
 
+    /**
+     * 자체평가, 현장실사 최종제출
+     * */
     exportFile: ipcMain.on('exportFile', (event, args) => {
         db = new sqlite3.Database('./db/evaluation.db');
         let path;
@@ -53,6 +56,9 @@ module.exports = {
             }
         })
     }),
+    /**
+     * 현장실사 점부파일 저장
+     * */
     saveInspectFile: ipcMain.on('saveInspectFile', (event, args) => {
         db = new sqlite3.Database('./db/evaluation.db');
         dialog.showOpenDialog(mainWindow, {
@@ -86,18 +92,27 @@ module.exports = {
             });
         })
     }),
+    /**
+     * 현장실사 첨부파일 리스트 가져오기
+     * */
     getFileList: ipcMain.on('getFileList', (event, args) => {
         let filePath = path.join(__dirname, args.path); // 저장 경로
         fs.readdir(filePath + args.seq, (err, files) => {
             event.sender.send('fileListResponse', files);
         })
     }),
+    /**
+     * 평가결과 이전년도 리스트 가져오기
+     * */
     getOlderFileList: ipcMain.on('getOlderFileList', (event, args) => {
         let filePath = path.join(__dirname, args); // 저장 경로
         fs.readdir(filePath, (err, files) => {
             event.sender.send('getOlderFileListResponse', files);
         })
     }),
+    /**
+     * 평가결과 이전년도 데이터 가져오기
+     * */
     getOlderFileData: ipcMain.on('getOlderFileData', (event, args) => {
         let filePath = path.join(__dirname, args.path); // 저장 경로
         if (fs.existsSync(filePath + args.seq)) {
@@ -112,6 +127,9 @@ module.exports = {
             });
         }
     }),
+    /**
+     * 현장실사 첨부파일 삭제
+     * */
     deleteFile: ipcMain.on('deleteFile', (event, args) => {
         let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
         fs.unlink(`${filePath}\\${args.seq}\\${args.fileName}`, (err) => {
@@ -121,7 +139,11 @@ module.exports = {
             } else event.sender.send('deleteFileResponse', true)
         })
     }),
+    /**
+     * 최종결과 파일 불러온 뒤 DB 저장
+     * */
     getFinalFile: ipcMain.on('getFinalFile', (event, args) => {
+        console.log(args)
         try {
             dialog.showOpenDialog(mainWindow, {
                 properties: ['openFile'],
@@ -129,59 +151,76 @@ module.exports = {
             }).then(async (result) => {
                 let res = await readFile(result.filePaths[0]);
                 db = new sqlite3.Database('./db/evaluation.db');
-                db.serialize((err, event) => {
-                    res.questions.forEach((e) => {
-                        db.run(`
-                        UPDATE questions
-                        SET inspect_result = '${e.inspect_result}', inspect_score = '${e.inspect_score}', inspect_memo = '${e.inspect_memo}'
-                        WHERE id = ${e.id}
-                    `);
-                    })
-                    res.company.forEach((e) => {
-                        db.run(`
-                        UPDATE company
-                        SET activity_value = '${e.activity_value}', training_max = '${e.training_max}', training_value = '${e.training_value}', protect_max = '${e.protect_max}', protect_value = '${e.protect_value}', appeal_value = '${e.appeal_value}', completeYn = '${e.completeYn}'  
-                        WHERE id = ${args}
-                    `);
-                    })
-                })
-
-                // 저장 경로에 폴더가 없으면 해당 폴더 생성
-                let filePath = result.filePaths[0];
-                let staticPath = path.join(__dirname, '../static');
-                let filesPath = path.join(__dirname, '../static/files');
-                let resultPath = path.join(__dirname, '../static/files/result');
-                let savePath = path.join(__dirname, '../static/files/result/'); // 저장 경로
-                let year = new Date().getFullYear();
-
-                if (!fs.existsSync(staticPath)) {
-                    fs.mkdirSync(staticPath)
-                }
-                if (!fs.existsSync(filesPath)) {
-                    fs.mkdirSync(filesPath)
-                }
-                if (!fs.existsSync(resultPath)) {
-                    fs.mkdirSync(resultPath)
-                }
-                if (!fs.existsSync(savePath + year)) {
-                    fs.mkdirSync(savePath + year);
-                }
-
-                // /static/files/result/해당년도에 최종 결과 파일 복사
-                fs.copyFile(filePath, `${savePath}${year}\\result.json`, (err) => {
+                let companySeq;
+                db.get(`
+                    SELECT * FROM company WHERE code = ${args}
+                `, (err, row) => {
                     if (err) {
-                        console.log('Inspect file upload error:: ', err.message);
+                        console.log('getFinalFile get company info error:: ', err.message);
+                    } else {
+                        companySeq = row.id;
+                        db.serialize((err, event) => {
+                            res.questions.forEach((e) => {
+                                db.run(`
+                                UPDATE questions
+                                SET inspect_result = '${e.inspect_result}', inspect_score = '${e.inspect_score}', inspect_memo = '${e.inspect_memo}'
+                                WHERE id = ${e.id}
+                            `);
+                            });
+                            db.run(`
+                                UPDATE company
+                                SET activity_value = '${res.company.activity_value}', training_max = '${res.company.training_max}', training_value = '${res.company.training_value}', protect_max = '${res.company.protect_max}', protect_value = '${res.company.protect_value}', appeal_value = '${res.company.appeal_value}', completeYn = '${res.company.completeYn}'  
+                                WHERE code = ${args}
+                            `);
+                            res.admin.forEach((e) => {
+                                db.run(`
+                                INSERT OR REPLACE INTO admin(id, basic_info_seq, company_seq, name, roles, email, tel, phone, type)
+                                VALUES(${e.id}, 1, ${companySeq}, '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
+                                `);
+                            });
+                            db.run(`
+                            UPDATE basic_info
+                            SET company_seq = ${companySeq}
+                            `)
+                        })
+
+                        // 저장 경로에 폴더가 없으면 해당 폴더 생성
+                        let filePath = result.filePaths[0];
+                        let staticPath = path.join(__dirname, '../static');
+                        let filesPath = path.join(__dirname, '../static/files');
+                        let resultPath = path.join(__dirname, '../static/files/result');
+                        let savePath = path.join(__dirname, '../static/files/result/'); // 저장 경로
+                        let year = new Date().getFullYear();
+
+                        if (!fs.existsSync(staticPath)) {
+                            fs.mkdirSync(staticPath)
+                        }
+                        if (!fs.existsSync(filesPath)) {
+                            fs.mkdirSync(filesPath)
+                        }
+                        if (!fs.existsSync(resultPath)) {
+                            fs.mkdirSync(resultPath)
+                        }
+                        if (!fs.existsSync(savePath + year)) {
+                            fs.mkdirSync(savePath + year);
+                        }
+
+                        // /static/files/result/해당년도에 최종 결과 파일 복사
+                        fs.copyFile(filePath, `${savePath}${year}\\result.json`, (err) => {
+                            if (err) {
+                                console.log('Inspect file upload error:: ', err.message);
+                            }
+                        });
+
+                        event.sender.send('getFinalFileResponse', true);
                     }
-                });
-
-
-                event.sender.send('getFinalFileResponse', true);
+                })
             });
         } catch (e) {
             event.sender.send('getFinalFileResponse', false);
         }
     })
-}
+};
 
 async function readFile(filepath) {
     // promise 객체 리턴

@@ -1,6 +1,6 @@
 <script>
     import {push} from "svelte-spa-router";
-    import {companyName, companySeq} from "../../../scripts/store/store";
+    import {companyCode, companyName, companySeq} from "../../../scripts/store/store";
     import Header from "../../lib/layout/Header.svelte";
     import {onDestroy, onMount} from "svelte";
 
@@ -11,6 +11,7 @@
         window.api.response('mainResponse', (data) => {
             $companyName = data.name;
             $companySeq = data.id;
+            $companyCode = data.code;
         })
         window.api.request('getMainInfo');
     })
