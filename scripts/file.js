@@ -67,11 +67,12 @@ module.exports = {
         }).then(async (result) => {
             let filePath = result.filePaths[0]; // 선택된 파일 경로
             let fileName = basename(filePath); // 선택된 파일 이름
-            let savePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
+            let savePath = path.join(__dirname, `../static/files/inspect/${args.year}/`); // 저장 경로
             // 저장 경로에 폴더가 없으면 해당 폴더 생성
             let staticPath = path.join(__dirname, '../static');
             let filesPath = path.join(__dirname, '../static/files');
             let inspectPath = path.join(__dirname, '../static/files/inspect');
+            let yearPath = path.join(__dirname, `../static/files/inspect/${args.year}`);
             if (!fs.existsSync(staticPath)) {
                 fs.mkdirSync(staticPath)
             }
@@ -81,11 +82,14 @@ module.exports = {
             if (!fs.existsSync(inspectPath)) {
                 fs.mkdirSync(inspectPath)
             }
-            if (!fs.existsSync(savePath + args)) {
-                fs.mkdirSync(savePath + args);
+            if (!fs.existsSync(yearPath)) {
+                fs.mkdirSync(yearPath)
+            }
+            if (!fs.existsSync(savePath + args.selectedSeq)) {
+                fs.mkdirSync(savePath + args.selectedSeq);
             }
 
-            fs.copyFile(filePath, `${savePath}${args}\\${fileName}`, (err) => {
+            fs.copyFile(filePath, `${savePath}${args.selectedSeq}\\${fileName}`, (err) => {
                 if (err) {
                     console.log('Inspect file upload error:: ', err.message);
                 } else event.sender.send('inspectSaveFileResponse', fileName);

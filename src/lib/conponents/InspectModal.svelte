@@ -1,6 +1,7 @@
 <script>
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
+    import {companyYear} from "../../../scripts/store/store";
 
     let answerList = [];
     let selfSubAnswerList = [];
@@ -200,7 +201,7 @@
      * */
     function saveInspectFile() {
         // TODO: 동일 파일명 처리
-        window.api.request('saveInspectFile', selectedSeq);
+        window.api.request('saveInspectFile', {selectedSeq: selectedSeq, year: $companyYear});
         window.api.response('inspectSaveFileResponse', (data) => {
             fileList = [...fileList, data];
             window.api.removeResponse('inspectSaveFileResponse');
