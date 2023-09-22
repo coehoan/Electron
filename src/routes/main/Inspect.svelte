@@ -3,6 +3,7 @@
     import {onDestroy, onMount} from "svelte";
     import {checkSelfScores} from "../../../scripts/util/common";
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
+    import {completeYn} from "../../../scripts/store/store";
 
     let title = '보안관리 현장실사';
     let questionList = [];
@@ -44,7 +45,8 @@
             window.api.response('fileResponse', (data) => {
                 if (data) {
                     alert('제출완료');
-                    window.api.removeResponse('fileResponse')
+                    window.api.removeResponse('fileResponse');
+                    $completeYn = 'Y'; // 현장실사 완료
                 }
             })
         } else alert('답변이 완료되지 않았습니다.');
@@ -104,7 +106,9 @@
     </div>
 
     <div style="display: flex; justify-content: end; margin-top: 30px">
-        <button on:click={submit}>Export</button>
+        {#if $completeYn !== 'Y'}
+            <button on:click={submit}>Export</button>
+        {/if}
     </div>
     <table style="width: 100%">
         <thead>

@@ -3,6 +3,7 @@
     import SelfEvaluationModal from "../../lib/conponents/SelfEvaluationModal.svelte";
     import {checkSelfScores} from "../../../scripts/util/common";
     import Header from "../../lib/layout/Header.svelte";
+    import {completeYn} from "../../../scripts/store/store";
 
     let title = '보안관리 실태평가';
     let questionList = [];
@@ -85,8 +86,11 @@
     </div>
 
     <div style="display: flex; justify-content: end; margin-top: 30px">
-        <button on:click={submit}>최종제출</button>
+        {#if $completeYn !== 'Y'}
+            <button on:click={submit}>최종제출</button>
+        {/if}
     </div>
+
     <table style="width: 100%">
         <thead>
         <tr style="background-color: black; color: white; height: 50px;">

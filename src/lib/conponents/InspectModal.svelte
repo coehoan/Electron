@@ -1,7 +1,7 @@
 <script>
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
-    import {companyYear} from "../../../scripts/store/store";
+    import {companyYear, completeYn} from "../../../scripts/store/store";
 
     let answerList = [];
     let selfSubAnswerList = [];
@@ -171,8 +171,10 @@
         if (document.activeElement.id !== 'textarea') { // textarea focus 상태일 때 해당 이벤트 제외
             // 숫자 입력 시 객관식 답 체크
             if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter') {
-                if (questionList[selectedSeq - 1].type === '객관식') {
-                    inspectCheckedAnswer = Number(e.key);
+                if ($completeYn !== 'Y') {
+                    if (questionList[selectedSeq - 1].type === '객관식') {
+                        inspectCheckedAnswer = Number(e.key);
+                    }
                 }
             } else {
                 // 화살표 입력 시 문항 이동
@@ -319,7 +321,7 @@
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer}/>
+                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer} disabled={$completeYn === 'Y'}/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -331,13 +333,13 @@
                             {#each answerList as list, i}
                                 <div style="display: flex; justify-content: space-between">
                                     <span>{list[`answer${i+1}`]}</span>
-                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text"/>
+                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text" disabled={$completeYn === 'Y'}/>
                                 </div>
                             {/each}
                         {/if}
                     </div>
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">현장실사 메모</div>
-                    <textarea id="textarea" style="width: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].inspect_memo}></textarea>
+                    <textarea id="textarea" style="width: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].inspect_memo} disabled={$completeYn === 'Y'}></textarea>
 
                     <div style="font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
@@ -349,8 +351,8 @@
                             {/if}
                         </div>
                         <div style="width: 9%; text-align: center">
-                            <button on:click={saveInspectFile}>첨부</button>
-                            <button on:click={deleteInspectFile}>삭제</button>
+                            <button on:click={saveInspectFile} disabled={$completeYn === 'Y'}>첨부</button>
+                            <button on:click={deleteInspectFile} disabled={$completeYn === 'Y'}>삭제</button>
                         </div>
                     </div>
 

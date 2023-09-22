@@ -4,7 +4,7 @@
         companyCode,
         companyName,
         companySeq,
-        companyYear,
+        companyYear, completeYn,
         isFinalListShow,
     } from "../../../scripts/store/store";
 
@@ -21,7 +21,7 @@
     })
 
     /**
-     * 이전년도 리스트 가져오기
+     * 이전년도 평가결과 리스트 가져오기
      * */
     function getOlderData() {
         let path = '../static/files/result/';
@@ -32,6 +32,9 @@
         })
     }
 
+    /**
+     * 이전년도 평가결과 불러오기
+     * */
     function getOlderFile() {
         if (!selectedYear) {
             // 선택된 년도가 없을 때(이전년도 리스트 없음)
@@ -56,6 +59,7 @@
                         $companySeq = data.id;
                         $companyCode = data.code;
                         $companyYear = data.year;
+                        $completeYn = 'Y'; // 현장실사 완료
 
                         window.api.removeResponse('mainResponse');
                     })

@@ -1,6 +1,7 @@
 <script>
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
+    import {completeYn} from "../../../scripts/store/store";
 
     let answerList = [];
     let subAnswerList = [];
@@ -153,8 +154,10 @@
     function keyboardEvent(e) {
         if (document.activeElement.id !== 'textarea') {
             if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter') {
-                if (questionList[selectedSeq - 1].type === '객관식') {
-                    checkedAnswer = Number(e.key);
+                if ($completeYn !== 'Y') {
+                    if (questionList[selectedSeq - 1].type === '객관식') {
+                        checkedAnswer = Number(e.key);
+                    }
                 }
             } else {
                 switch (e.code) {
@@ -209,7 +212,7 @@
                         {#if list[Object.keys(list)[0]] !== ''}
                             <div style="display: flex; justify-content: space-between">
                                 <div>
-                                    <input type="radio" value="{i + 1}" bind:group={checkedAnswer}/>
+                                    <input type="radio" value="{i + 1}" bind:group={checkedAnswer} disabled={$completeYn === 'Y'}/>
                                     <span>{list[`answer${i + 1}`]}</span>
                                 </div>
                                 <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -221,7 +224,7 @@
                     {#each answerList as list, i}
                         <div style="display: flex; justify-content: space-between">
                             <span>{list[`answer${i+1}`]}</span>
-                            <input name="answer" bind:value={subAnswerList[i]} type="text"/>
+                            <input name="answer" bind:value={subAnswerList[i]} type="text" disabled={$completeYn === 'Y'}/>
                         </div>
                     {/each}
                 {/if}

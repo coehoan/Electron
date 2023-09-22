@@ -1,7 +1,14 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
     import {onMount} from "svelte";
-    import {companyCode, companyName, companySeq, companyYear, isFinalListShow} from "../../../scripts/store/store";
+    import {
+        companyCode,
+        companyName,
+        companySeq,
+        companyYear,
+        completeYn,
+        isFinalListShow
+    } from "../../../scripts/store/store";
     import FinalResultModal from "../../lib/conponents/FinalResultModal.svelte";
     import FinalResultFileLoad from "../../lib/conponents/FinalResultFileLoad.svelte";
 
@@ -67,6 +74,7 @@
                     $companySeq = data.id;
                     $companyCode = data.code;
                     $companyYear = data.year;
+                    $completeYn = 'Y'; // 현장실사 완료
 
                     window.api.removeResponse('mainResponse');
                 })
