@@ -1,6 +1,7 @@
 <script>
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
+    import {companyYear} from "../../../scripts/store/store";
 
     let answerList = [];
     let selfSubAnswerList = [];
@@ -95,7 +96,7 @@
      * 현장실사 첨부파일 리스트 가져오기
      * */
     function getFileList() {
-        let path = '../static/files/inspect/';
+        let path = `../static/files/inspect/${$companyYear}/`;
         window.api.request('getFileList', {seq: selectedSeq, path: path});
         window.api.response('fileListResponse', (data) => {
             fileList = !!data ? data : [];
