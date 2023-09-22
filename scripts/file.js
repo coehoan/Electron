@@ -160,39 +160,67 @@ module.exports = {
             }).then(async (result) => {
                 let res = await readFile(result.filePaths[0]);
                 db = new sqlite3.Database('./db/evaluation.db');
-                let companySeq;
-                db.get(`
-                    SELECT * FROM company WHERE code = ${args}
-                `, (err, row) => {
-                    if (err) {
-                        console.log('getFinalFile get company info error:: ', err.message);
-                    } else {
-                        companySeq = row.id;
-                        db.serialize((err, event) => {
-                            res.questions.forEach((e) => {
-                                db.run(`
-                                UPDATE questions
-                                SET inspect_result = '${e.inspect_result}', inspect_score = '${e.inspect_score}', inspect_memo = '${e.inspect_memo}'
-                                WHERE id = ${e.id}
-                            `);
-                            });
-                            db.run(`
-                                UPDATE company
-                                SET activity_value = '${res.company.activity_value}', training_max = '${res.company.training_max}', training_value = '${res.company.training_value}', protect_max = '${res.company.protect_max}', protect_value = '${res.company.protect_value}', appeal_value = '${res.company.appeal_value}', completeYn = '${res.company.completeYn}'  
-                                WHERE code = ${args}
-                            `);
-                            res.admin.forEach((e) => {
-                                db.run(`
-                                INSERT OR REPLACE INTO admin(id, basic_info_seq, company_seq, name, roles, email, tel, phone, type)
-                                VALUES(${e.id}, 1, ${companySeq}, '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
-                                `);
-                            });
-                            db.run(`
-                            UPDATE basic_info
-                            SET company_seq = ${companySeq}
-                            `)
-                        })
-
+                db.serialize(() => {
+                    db.run(`DELETE FROM company`);
+                    db.run(`DELETE FROM admin`);
+                    db.run(`DELETE FROM questions`);
+                    db.run(`
+                        INSERT INTO company(id, code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn, year)
+                        VALUES(
+                        1,
+                        ${res.company.code},
+                        '${res.company.name}', 
+                        '${res.company.type}', 
+                        '${res.company.address}', 
+                        '${res.company.activity_value}', 
+                        '${res.company.training_max}', 
+                        '${res.company.training_value}', 
+                        '${res.company.protect_max}', 
+                        '${res.company.protect_value}', 
+                        '${res.company.appeal_value}', 
+                        '${res.company.completeYn}', 
+                        '${res.company.year}')
+                    `);
+                    res.admin.forEach((e) => {
+                        db.run(`
+                            INSERT INTO admin
+                            VALUES(${e.id}, 1, 1, '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
+                        `)
+                    });
+                    res.questions.forEach((e) => {
+                        db.run(`
+                            INSERT INTO questions
+                            VALUES(
+                            '${e.id}',
+                            '${e.num}',
+                            '${e.type}',
+                            '${e.point}',
+                            '${e.question}', 
+                            '${e.answer1}', 
+                            '${e.anspoint1}', 
+                            '${e.answer2}', 
+                            '${e.anspoint2}', 
+                            '${e.answer3}',
+                            '${e.anspoint3}',
+                            '${e.answer4}', 
+                            '${e.anspoint4}', 
+                            '${e.answer5}', 
+                            '${e.anspoint5}', 
+                            '${e.self_result}', 
+                            '${e.self_score}', 
+                            '${e.inspect_result}',
+                            '${e.inspect_score}',
+                            '${e.stalenessYn}',
+                            '${e.evidence}',
+                            '${e.comment}',
+                            '${e.self_memo}',
+                            '${e.inspect_memo}')
+                        `);
+                    });
+                    db.run(`
+                        UPDATE basic_info
+                        SET company_seq = 1
+                    `, () => {
                         // 저장 경로에 폴더가 없으면 해당 폴더 생성
                         let filePath = path.join(__dirname, '../db/evaluation.db');
                         let staticPath = path.join(__dirname, '../static');
@@ -222,7 +250,7 @@ module.exports = {
                         });
 
                         event.sender.send('getFinalFileResponse', true);
-                    }
+                    })
                 })
             });
         } catch (e) {

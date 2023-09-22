@@ -70,7 +70,6 @@
             }
         })
         if (newAdminList.every((e) => !Object.values(e).includes(''))) {
-            console.log('pass')
             window.api.request('saveAdmin', newAdminList);
         } else {
             console.log('값을 입력해주세요');

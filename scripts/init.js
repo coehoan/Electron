@@ -85,7 +85,8 @@ module.exports = {
                         protect_max INTEGER,
                         protect_value REAL,
                         appeal_value REAL,
-                        completeYn TEXT)
+                        completeYn TEXT,
+                        year TEXT)
                 `);
                     db.run(`
                     CREATE TABLE IF NOT EXISTS basic_info (
@@ -137,7 +138,7 @@ module.exports = {
                     })
                     res.company.forEach((e) => {
                         db.run(`
-                        INSERT INTO company (code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn) 
+                        INSERT INTO company (code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn, year) 
                         VALUES(
                             '${e.code}', 
                             '${e.name}', 
@@ -149,7 +150,8 @@ module.exports = {
                             '${e.protect_max}',
                             '${e.protect_value}',
                             '${e.appeal_value}',
-                            '${e.completeYn}')
+                            '${e.completeYn}',
+                            '${e.year}')
                     `);
                     })
                 })

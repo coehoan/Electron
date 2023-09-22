@@ -1,6 +1,6 @@
 <script>
     import {push} from "svelte-spa-router";
-    import {companyName, year} from "../../../scripts/store/store";
+    import {companyName, companyYear} from "../../../scripts/store/store";
     import Setting from "../conponents/Setting.svelte";
 
     export let title = '';
@@ -24,7 +24,7 @@
         <button on:click={() => {isSettingShow = true; document.getElementsByTagName('body')[0].style.overflow = 'hidden'}}>환경설정</button>
     </div>
     <div style="display:flex; gap: 5px">
-        <p>{$year}년 </p>
+        <p>{$companyYear}년 </p>
         <p>{$companyName}</p>
         <p>{title}</p>
     </div>

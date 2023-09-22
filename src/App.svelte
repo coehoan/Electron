@@ -10,6 +10,7 @@
     onMount(async () => {
         window.api.response('mainResponse', (data) => {
             $isExist = data;
+            window.api.removeResponse('mainResponse');
         })
         window.api.request('existFile', filePath);
     })

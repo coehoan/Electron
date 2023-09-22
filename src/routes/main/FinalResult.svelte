@@ -1,7 +1,7 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
     import {onMount} from "svelte";
-    import {companyCode, companySeq, isFinalListShow} from "../../../scripts/store/store";
+    import {companyCode, companyName, companySeq, companyYear, isFinalListShow} from "../../../scripts/store/store";
     import FinalResultModal from "../../lib/conponents/FinalResultModal.svelte";
     import FinalResultFileLoad from "../../lib/conponents/FinalResultFileLoad.svelte";
 
@@ -55,8 +55,22 @@
         window.api.response('getFinalFileResponse', (data) => {
             if (data) {
                 window.api.request('getQuestionInfo');
+                window.api.response('selfResponse', (data) => {
+                    questionList = data;
+                    window.api.removeResponse('selfResponse');
+                })
                 // 파일 로딩 성공 시 리스트 출력
                 $isFinalListShow = true;
+                // 기관정보 store값 업데이트
+                window.api.response('mainResponse', (data) => {
+                    $companyName = data.name;
+                    $companySeq = data.id;
+                    $companyCode = data.code;
+                    $companyYear = data.year;
+
+                    window.api.removeResponse('mainResponse');
+                })
+                window.api.request('getMainInfo');
                 // completeYn 수정
                 // static/files/result/해당년도에 파일 저장 (sqlite + 현장실사 첨부파일)
             } else {
@@ -64,10 +78,6 @@
             }
         })
         window.api.request('getFinalFile', $companyCode);
-        window.api.response('selfResponse', (data) => {
-            questionList = data;
-            window.api.removeResponse('selfResponse');
-        })
     }
 
     /**

@@ -1,6 +1,12 @@
 <script>
     import {onMount} from "svelte";
-    import {isFinalListShow} from "../../../scripts/store/store";
+    import {
+        companyCode,
+        companyName,
+        companySeq,
+        companyYear,
+        isFinalListShow,
+    } from "../../../scripts/store/store";
 
     export let isFileLoadShow = true;
     export let questionList = [];
@@ -27,15 +33,13 @@
     }
 
     function getOlderFile() {
-        // 해당 년도를 받아온다.
-        let year = selectedYear;
-        if (!year) {
+        if (!selectedYear) {
             // 선택된 년도가 없을 때(이전년도 리스트 없음)
             isFileLoadShow = false;
         } else {
             // /static/files/result/ 에 해당년도 폴더가 존재하는지 확인한다.
             let filePath = `../static/files/result/`;
-            window.api.request('getOlderFileData', {seq: year, path: filePath});
+            window.api.request('getOlderFileData', {seq: selectedYear, path: filePath});
             window.api.response('olderFileDataResponse', (data) => {
                 // 존재하면 데이터 업데이트
                 if (data) {
@@ -44,8 +48,18 @@
                         questionList = data;
                         window.api.removeResponse('selfResponse');
                     })
-                    isFileLoadShow = false;
-                    $isFinalListShow = true;
+                    isFileLoadShow = false; // 팝업창 닫기
+                    $isFinalListShow = true; // 결과 리스트 노출
+                    // 기관정보 store값 업데이트
+                    window.api.response('mainResponse', (data) => {
+                        $companyName = data.name;
+                        $companySeq = data.id;
+                        $companyCode = data.code;
+                        $companyYear = data.year;
+
+                        window.api.removeResponse('mainResponse');
+                    })
+                    window.api.request('getMainInfo');
                 }
             })
         }

@@ -1,6 +1,6 @@
 <script>
     import {push} from "svelte-spa-router";
-    import {companyCode, companyName, companySeq} from "../../../scripts/store/store";
+    import {companyCode, companyName, companySeq, companyYear} from "../../../scripts/store/store";
     import Header from "../../lib/layout/Header.svelte";
     import {onDestroy, onMount} from "svelte";
 
@@ -12,6 +12,7 @@
             $companyName = data.name;
             $companySeq = data.id;
             $companyCode = data.code;
+            $companyYear = data.year;
         })
         window.api.request('getMainInfo');
     })
