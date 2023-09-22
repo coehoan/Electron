@@ -169,9 +169,7 @@ module.exports = {
             if (err) {
                 console.log('Select Error:: ', err.message);
             } else {
-                console.log('Select Success');
                 event.sender.send('step2CompanyList', data);
-                // window.getFocusedWindow().webContents.send('step2Response', data);
             }
         })
     }),
@@ -197,7 +195,6 @@ module.exports = {
                 if (err) {
                     console.log('Select Error:: ', err.message);
                 } else {
-                    console.log('Select Success');
                     db.run(`
                     INSERT INTO admin (basic_info_seq, company_seq, name, roles, email, tel, phone, type)
                     VALUES ('${row.id}', '${row.company_seq}', '${args.name}', '${args.roles}', '${args.email}', '${args.tel}', '${args.phone}', '주담당자')
@@ -219,7 +216,6 @@ async function readFile(filepath) {
                 console.log('File read Error:: ', err.message);
                 reject(err);
             } else {
-                console.log('File read Success');
                 resolve(JSON.parse(data));
             }
         })

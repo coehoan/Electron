@@ -267,7 +267,6 @@ async function readFile(filepath) {
                 console.log('File read Error:: ', err.message);
                 reject(err);
             } else {
-                console.log('File read Success');
                 resolve(JSON.parse(data));
             }
         })
