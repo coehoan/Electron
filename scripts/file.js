@@ -292,7 +292,8 @@ module.exports = {
             let zip = new AdmZip(); // 새로운 zip 파일 생성
             let folderPath = path.join(__dirname, '../');
             zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
-            zip.writeZip(`${savePath}/back_up.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
+            zip.writeZip(`${savePath}\\back_up.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
+                console.log('writeZip:: ', `${savePath}\\back_up.zip`)
                 event.sender.send('backUpResponse', true);
             });
         })
@@ -305,15 +306,23 @@ module.exports = {
         }).then((result) => {
             let folderPath = path.join(__dirname, '../');
             let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
+            console.log('new AdmZip:: ', result.filePaths[0])
 
 
             // 현재 프로젝트 파일 삭제
-            fs.rmdirSync(folderPath, { recursive: true });
+            // fs.rmdirSync(folderPath, { recursive: true });
 
             // 백업 파일 압축 해제
-            zip.extractAllToAsync(folderPath, true, null, () => {
+            zip.extractAllToAsync(folderPath, true, false, () => {
                 // 복원 완료 시 처리
                 console.log('복원이 완료되었습니다.');
+
+                // 앱 재실행
+                app.relaunch();
+                app.quit();
+                app.on("quit", () => {
+                    console.log('App quit!')
+                })
             });
 
 
