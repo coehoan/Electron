@@ -7,6 +7,13 @@
         event.stopPropagation(); // 모달 클릭 이벤트 중지
     }
 
+    onDestroy(() => {
+        window.api.removeResponse('step1Response');
+    })
+
+    /**
+     * 평가데이터 가져오기
+     * */
     function fileUpload() {
         window.api.request('fileUpload');
         window.api.response('step1Response', (data) => {
@@ -18,9 +25,29 @@
         })
     }
 
-    onDestroy(() => {
-        window.api.removeResponse('step1Response');
-    })
+    /**
+     * 백업
+     * */
+    function backUp() {
+        window.api.request('backUp');
+        window.api.response('backUpResponse', (data) => {
+            if (data) {
+                alert('백업 완료');
+            }
+        });
+    }
+
+    /**
+     * 복원
+     * */
+    function restore() {
+        window.api.request('restore');
+        window.api.response('restoreResponse', (data) => {
+            if (data) {
+                alert('복원 완료');
+            }
+        });
+    }
 </script>
 
 <div class="modal-overlay" on:click={() => {isSettingShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
@@ -32,8 +59,8 @@
         <div style="display: flex; justify-content: center; align-items: center; height: 260px">
             <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 80%; padding: 5px">
                 <button style="width: 250px;" on:click={fileUpload}>평가데이터 가져오기</button>
-                <button style="width: 250px;">백업하기</button>
-                <button style="width: 250px;">복원하기</button>
+                <button style="width: 250px;" on:click={backUp}>백업하기</button>
+                <button style="width: 250px;" on:click={restore}>복원하기</button>
             </div>
         </div>
     </div>
