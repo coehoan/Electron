@@ -29,6 +29,7 @@
     "postinstall": "install-app-deps"
   },
   "dependencies": {
+    "adm-zip": "^0.5.10",
     "electron-serve": "^1.1.0",
     "sqlite3": "^5.1.6"
   },

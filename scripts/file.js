@@ -4,6 +4,7 @@ const fs = require('fs');
 const {mainWindow} = require('../electron/main');
 const {basename} = require('path');
 const path = require('path');
+const AdmZip = require('adm-zip');
 
 let db;
 
@@ -15,7 +16,7 @@ module.exports = {
      * */
     exportFile: ipcMain.on('exportFile', (event, args) => {
         db = new sqlite3.Database('./db/evaluation.db');
-        let path;
+        let savePath;
         let question = [];
         let admin = [];
         let company;
@@ -45,9 +46,17 @@ module.exports = {
                                     defaultPath: "C:", // 디폴트 경로
                                     properties: ["openDirectory"] // 저장 경로를 폴더로 변경
                                 }).then((result) => {
-                                    path = result.filePaths[0]; // 지정 경로
-                                    fs.writeFileSync(path + '/result.json', JSON.stringify(obj)); // 해당 경로로 result.json 파일 생성
-                                    event.sender.send('fileResponse', true)
+                                    savePath = result.filePaths[0]; // 지정 경로
+                                    // fs.writeFileSync(path + '/result.json', JSON.stringify(obj)); // 해당 경로로 result.json 파일 생성
+                                    // event.sender.send('fileResponse', true)
+
+                                    let zip = new AdmZip(); // 새로운 zip 파일 생성
+                                    let folderPath = path.join(__dirname, `../static/files/inspect/${args}`); // 해당년도 파일 경로
+                                    zip.addFile('result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // result.json을 버퍼로 읽은 후 zip 파일에 저장
+                                    zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
+                                    zip.writeZip(`${savePath}/result.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
+                                        event.sender.send('fileResponse', true);
+                                    });
                                 })
                             }
                         })

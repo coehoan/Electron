@@ -3,7 +3,7 @@
     import {onDestroy, onMount} from "svelte";
     import {checkSelfScores} from "../../../scripts/util/common";
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
-    import {completeYn} from "../../../scripts/store/store";
+    import {companyYear, completeYn} from "../../../scripts/store/store";
 
     let title = '보안관리 현장실사';
     let questionList = [];
@@ -41,7 +41,7 @@
         // TODO: 현장실사 파일 압축하기
         // 미응답 항목 체크
         if (checkSelfScores(questionList)) {
-            window.api.request('exportFile');
+            window.api.request('exportFile', $companyYear);
             window.api.response('fileResponse', (data) => {
                 if (data) {
                     alert('제출완료');
