@@ -37,8 +37,7 @@
     /**
      * 최종 제출
      * */
-    function submit() {
-        // 미응답 항목 체크
+    function submit() {        // 미응답 항목 체크
         if (checkSelfScores(questionList)) {
             window.api.request('exportFile', $companyYear);
             window.api.response('fileResponse', (data) => {
