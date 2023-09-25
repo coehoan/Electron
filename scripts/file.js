@@ -171,7 +171,20 @@ module.exports = {
                 properties: ['openFile'],
                 title: '파일 업로드'
             }).then(async (result) => {
-                let res = await readFile(result.filePaths[0]);
+                let res;
+                let year = new Date().getFullYear(); // 현재년도
+                let savePath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 파일 경로
+                let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
+                let zipEntries = zip.getEntries(); // zip 파일 컨텐츠
+                zipEntries.forEach((e) => {
+                    // zip 파일 중 result.json 파일을 찾는다.
+                    if (e.entryName === 'result.json') {
+                        res = JSON.parse(e.getData().toString('utf8'));
+                    }
+                })
+                zip.extractAllTo(savePath, true); // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
+                fs.unlinkSync(`${savePath}\\result.json`); // 저장 후 result.json 파일 삭제
+
                 db = new sqlite3.Database('./db/evaluation.db');
                 db.serialize(() => {
                     db.run(`DELETE FROM company`);
@@ -240,7 +253,6 @@ module.exports = {
                         let filesPath = path.join(__dirname, '../static/files');
                         let resultPath = path.join(__dirname, '../static/files/result');
                         let savePath = path.join(__dirname, '../static/files/result/'); // 저장 경로
-                        let year = new Date().getFullYear();
 
                         if (!fs.existsSync(staticPath)) {
                             fs.mkdirSync(staticPath)

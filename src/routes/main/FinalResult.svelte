@@ -85,7 +85,7 @@
 
             }
         })
-        window.api.request('getFinalFile', $companyCode);
+        window.api.request('getFinalFile');
     }
 
     /**

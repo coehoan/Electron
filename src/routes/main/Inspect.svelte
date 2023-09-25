@@ -38,7 +38,6 @@
      * 최종 제출
      * */
     function submit() {
-        // TODO: 현장실사 파일 압축하기
         // 미응답 항목 체크
         if (checkSelfScores(questionList)) {
             window.api.request('exportFile', $companyYear);
