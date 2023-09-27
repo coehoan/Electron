@@ -292,7 +292,7 @@ module.exports = {
             let zip = new AdmZip(); // 새로운 zip 파일 생성
             let folderPath = path.join(__dirname, '../');
             zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
-            zip.writeZip(`${savePath}\\back_up.zip`, () => { // zip 파일을 선택 된 경로에 back_up.zip 으로 생성
+            zip.writeZip(`${savePath}\\back_up.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
                 console.log('writeZip:: ', `${savePath}\\back_up.zip`)
                 event.sender.send('backUpResponse', true);
             });
@@ -304,8 +304,6 @@ module.exports = {
             defaultPath: "C:", // 디폴트 경로
             properties: ["openFile"] // 저장 경로를 폴더로 변경
         }).then((result) => {
-            // app.quit();
-
             let folderPath = path.join(__dirname, '../');
             let tmpFolderPath = path.join(__dirname, '../tmp'); // 임시 폴더 경로
             let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
