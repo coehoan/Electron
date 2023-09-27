@@ -292,7 +292,8 @@ module.exports = {
             let zip = new AdmZip(); // 새로운 zip 파일 생성
             let folderPath = path.join(__dirname, '../');
             zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
-            zip.writeZip(`${savePath}/back_up.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
+            zip.writeZip(`${savePath}\\back_up.zip`, () => { // zip 파일을 선택 된 경로에 back_up.zip 으로 생성
+                console.log('writeZip:: ', `${savePath}\\back_up.zip`)
                 event.sender.send('backUpResponse', true);
             });
         })
@@ -303,48 +304,20 @@ module.exports = {
             defaultPath: "C:", // 디폴트 경로
             properties: ["openFile"] // 저장 경로를 폴더로 변경
         }).then((result) => {
+            // app.quit();
+
             let folderPath = path.join(__dirname, '../');
+            let tmpFolderPath = path.join(__dirname, '../tmp'); // 임시 폴더 경로
             let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
 
-
-            // 현재 프로젝트 파일 삭제
-            fs.rmdirSync(folderPath, { recursive: true });
-
-            // 백업 파일 압축 해제
-            zip.extractAllToAsync(folderPath, true, null, () => {
-                // 복원 완료 시 처리
+            if (!fs.existsSync(tmpFolderPath)) {
+                fs.mkdirSync(tmpFolderPath);
+            }
+            zip.extractAllToAsync(tmpFolderPath, true, false, () => {
                 console.log('복원이 완료되었습니다.');
-            });
 
-
-
-
-
-
-
-            /*zip.extractAllToAsync(folderPath, true, null, () => { // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
-            // zip.extractAllToAsync(`${folderPath}_backup`, true, null, () => { // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
-                /!*fs.rmdir(folderPath, (err) => {
-                    if (err) {
-                        console.log('BackUp data remove error:: ', err.message);
-                    } else {
-                        // TODO: 복원
-                    }
-                })*!/
                 app.quit();
-                app.on('window-all-closed', () => {
-                    event.sender.send('restoreResponse', true);
-                    console.log('window-all-closed event!')
-
-                    app.quit();
-                    /!*fs.rmdir(folderPath, (err) => {
-                        if (err) {
-                            console.log('BackUp data remove error:: ', err.message);
-                        } else {
-                        }
-                    })*!/
-                });
-            })*/
+            })
         })
     }),
 };
