@@ -41,7 +41,10 @@ module.exports = {
                     res[key].forEach((e) => {
                         console.log(Object.keys(e))})
                 })*/
-
+                let dbPath = path.join(__dirname, '../db');
+                if (!fs.existsSync(dbPath)) {
+                    fs.mkdirSync(dbPath);
+                }
                 fs.writeFileSync('./db/evaluation.db', ''); // evaluation.db 파일 생성
                 db = new sqlite3.Database('./db/evaluation.db'); // evaluation.db 접속
                 db.serialize((err, event) => { // 쿼리 실행
