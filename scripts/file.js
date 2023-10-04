@@ -190,6 +190,8 @@ module.exports = {
                 zip.extractAllTo(savePath, true); // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
                 fs.unlinkSync(`${savePath}\\result.json`); // 저장 후 result.json 파일 삭제
 
+                let dbPath = path.join(__dirname, '../db');
+                let dbFilePath = path.join(dbPath, '/evaluation.db');
                 db = new sqlite3.Database(dbFilePath);
                 db.serialize(() => {
                     db.run(`DELETE FROM company`);
@@ -312,14 +314,21 @@ module.exports = {
             // app.quit();
 
             let folderPath = path.join(__dirname, '../');
-            let tmpFolderPath = path.join(__dirname, '../tmp'); // 임시 폴더 경로
             let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
 
-            if (!fs.existsSync(tmpFolderPath)) {
-                fs.mkdirSync(tmpFolderPath);
-            }
-            zip.extractAllToAsync(tmpFolderPath, true, false, () => {
+
+            // 현재 프로젝트 파일 삭제
+            fs.rmdirSync(folderPath, { recursive: true });
+
+            // 백업 파일 압축 해제
+            zip.extractAllToAsync(folderPath, true, null, () => {
+                // 복원 완료 시 처리
                 console.log('복원이 완료되었습니다.');
+            });
+
+
+
+
 
                 app.quit();
             })
