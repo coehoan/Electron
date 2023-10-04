@@ -5,6 +5,7 @@ const {mainWindow} = require('../electron/main');
 const {basename} = require('path');
 const path = require('path');
 const AdmZip = require('adm-zip');
+const childProcess = require('child_process');
 
 let db;
 
@@ -15,7 +16,9 @@ module.exports = {
      * 자체평가, 현장실사 최종제출
      * */
     exportFile: ipcMain.on('exportFile', (event, args) => {
-        db = new sqlite3.Database('./db/evaluation.db');
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
         let savePath;
         let question = [];
         let admin = [];
@@ -69,7 +72,9 @@ module.exports = {
      * 현장실사 점부파일 저장
      * */
     saveInspectFile: ipcMain.on('saveInspectFile', (event, args) => {
-        db = new sqlite3.Database('./db/evaluation.db');
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
         dialog.showOpenDialog(mainWindow, {
             properties: ['openFile'],
             title: '파일 업로드'
@@ -185,7 +190,7 @@ module.exports = {
                 zip.extractAllTo(savePath, true); // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
                 fs.unlinkSync(`${savePath}\\result.json`); // 저장 후 result.json 파일 삭제
 
-                db = new sqlite3.Database('./db/evaluation.db');
+                db = new sqlite3.Database(dbFilePath);
                 db.serialize(() => {
                     db.run(`DELETE FROM company`);
                     db.run(`DELETE FROM admin`);
@@ -292,59 +297,66 @@ module.exports = {
             let zip = new AdmZip(); // 새로운 zip 파일 생성
             let folderPath = path.join(__dirname, '../');
             zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
-            zip.writeZip(`${savePath}/back_up.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
+            zip.writeZip(`${savePath}\\back_up.zip`, () => { // zip 파일을 선택 된 경로에 back_up.zip 으로 생성
+                console.log('writeZip:: ', `${savePath}\\back_up.zip`)
                 event.sender.send('backUpResponse', true);
             });
         })
     }),
     restore: ipcMain.on('restore', (event, args) => {
-        // 파일 선택 팝업 오픈
+        /*// 파일 선택 팝업 오픈
         dialog.showOpenDialog(mainWindow, {
             defaultPath: "C:", // 디폴트 경로
             properties: ["openFile"] // 저장 경로를 폴더로 변경
         }).then((result) => {
+            // app.quit();
+
             let folderPath = path.join(__dirname, '../');
+            let tmpFolderPath = path.join(__dirname, '../tmp'); // 임시 폴더 경로
             let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
 
-
-            // 현재 프로젝트 파일 삭제
-            fs.rmdirSync(folderPath, { recursive: true });
-
-            // 백업 파일 압축 해제
-            zip.extractAllToAsync(folderPath, true, null, () => {
-                // 복원 완료 시 처리
+            if (!fs.existsSync(tmpFolderPath)) {
+                fs.mkdirSync(tmpFolderPath);
+            }
+            zip.extractAllToAsync(tmpFolderPath, true, false, () => {
                 console.log('복원이 완료되었습니다.');
-            });
 
-
-
-
-
-
-
-            /*zip.extractAllToAsync(folderPath, true, null, () => { // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
-            // zip.extractAllToAsync(`${folderPath}_backup`, true, null, () => { // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
-                /!*fs.rmdir(folderPath, (err) => {
-                    if (err) {
-                        console.log('BackUp data remove error:: ', err.message);
-                    } else {
-                        // TODO: 복원
-                    }
-                })*!/
                 app.quit();
-                app.on('window-all-closed', () => {
-                    event.sender.send('restoreResponse', true);
-                    console.log('window-all-closed event!')
-
-                    app.quit();
-                    /!*fs.rmdir(folderPath, (err) => {
-                        if (err) {
-                            console.log('BackUp data remove error:: ', err.message);
+            })
+        })*/
+        dialog.showOpenDialog(mainWindow, {
+            defaultPath: "C:",
+            properties: ["openFile"]
+        }).then((result) => {
+            let folderPath = path.join(__dirname, '../');
+            let tmpFolderPath = path.join(__dirname, '../tmp');
+            let zip = new AdmZip(result.filePaths[0]);
+            if (!fs.existsSync(tmpFolderPath)) {
+                fs.mkdirSync(tmpFolderPath);
+            }
+            zip.extractAllToAsync(tmpFolderPath, true, true, (err) => {
+                if (err) {
+                    console.log('extractAllToAsync err:: ', err)
+                } else {
+                    console.log('압축해제 완료');
+                    // 앱 실행중이라 복사 안되는지?
+                    childProcess.exec(`xcopy ${tmpFolderPath} ${folderPath} /e /h /k /y`,{encoding:"utf-8"}, (stderr) => {
+                        if (stderr) {
+                            console.log('xcopy error:: ', stderr.message);
                         } else {
+                            childProcess.exec(`rmdir /s /q ${tmpFolderPath}`, {encoding:"utf-8"}, (stderr) => {
+                                if (stderr) {
+                                    console.log('rmdir error:: ', stderr.message);
+                                } else {
+                                    console.log('파일 복사 및 tmp 파일 삭제 완료');
+                                    app.quit();
+                                    app.relaunch();
+                                }
+                            });
                         }
-                    })*!/
-                });
-            })*/
+                    });
+                }
+            })
         })
     }),
 };

@@ -1,5 +1,4 @@
-import {readable, writable} from "svelte/store";
-import {getCurrentYear} from "../util/common";
+import {writable} from "svelte/store";
 
 export let companyName = writable('');
 export let companySeq = writable('');

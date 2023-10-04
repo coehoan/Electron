@@ -16,7 +16,10 @@ module.exports = {
      * 파일 존재유무 체크
      * */
     existFile: ipcMain.on('existFile', (event, args) => {
-        fs.access(args, fs.constants.F_OK, (err) => {
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+
+        fs.access(dbFilePath, fs.constants.F_OK, (err) => {
             event.sender.send('mainResponse', !err);
         })
     }),
@@ -41,9 +44,15 @@ module.exports = {
                     res[key].forEach((e) => {
                         console.log(Object.keys(e))})
                 })*/
-
-                fs.writeFileSync('./db/evaluation.db', ''); // evaluation.db 파일 생성
-                db = new sqlite3.Database('./db/evaluation.db'); // evaluation.db 접속
+                let dbPath = path.join(__dirname, '../db');
+                let dbFilePath = path.join(dbPath, '/evaluation.db');
+                if (!fs.existsSync(dbPath)) {
+                    fs.mkdirSync(dbPath);
+                }
+                if (!fs.existsSync(dbFilePath)) {
+                    fs.writeFileSync(dbFilePath, ''); // evaluation.db 파일 생성
+                }
+                db = new sqlite3.Database(dbFilePath); // evaluation.db 접속
                 db.serialize((err, event) => { // 쿼리 실행
                     db.run(`
                     CREATE TABLE IF NOT EXISTS questions (
@@ -190,7 +199,7 @@ module.exports = {
      * */
     setAdminInfo: ipcMain.on('setAdminInfo', (event, args) => {
         try {
-            // db = new sqlite3.Database('./db/evaluation.db');
+            // db = new sqlite3.Database(dbFilePath);
             db.get(`SELECT id, company_seq FROM basic_info`, (err, row) => {
                 if (err) {
                     console.log('Select Error:: ', err.message);

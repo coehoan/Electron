@@ -9,14 +9,25 @@
   "build": {
     "icon": "public/favicon.png",
     "productName": "SelfEvaluation",
+    "asar": false,
     "files": [
       "public/**/*",
       "scripts/**/*",
       "electron/**"
     ],
-    "win": {},
-    "linux": {},
-    "mac": {}
+    "win": {
+      "target": "nsis",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "perMachine": true,
+      "language": 1042,
+      "shortcutName": "SelfEvaluation",
+      "uninstallDisplayName": "SelfEvaluation"
+    }
   },
   "scripts": {
     "build": "rollup -c --bundleConfigAsCjs",
@@ -25,12 +36,14 @@
     "electron": "wait-on http://localhost:8080 && electron .",
     "electron-dev": "concurrently \"yarn run dev\" \"yarn run electron\"",
     "preelectron-pack": "yarn run build",
-    "electron-pack": "electron-builder",
+    "electron-pack": "concurrently \"npm rebuild\" \"electron-builder\"",
     "postinstall": "install-app-deps"
   },
   "dependencies": {
     "adm-zip": "^0.5.10",
+    "child_process": "^1.0.2",
     "electron-serve": "^1.1.0",
+    "fs-extra": "^11.1.1",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {

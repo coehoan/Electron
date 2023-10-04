@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron');
 const sqlite3 = require('sqlite3');
+const path = require("path");
 
 let db;
 
@@ -10,7 +11,9 @@ module.exports = {
      * 메인페이지 데이터 불러오기
      * */
     getMainInfo: ipcMain.on('getMainInfo', (event, args) => {
-        db = new sqlite3.Database('./db/evaluation.db');
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
         db.get(`
             SELECT company_seq FROM basic_info
         `, (err, data) => {

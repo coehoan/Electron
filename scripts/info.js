@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron');
 const sqlite3 = require('sqlite3');
+const path = require("path");
 
 let db;
 
@@ -10,7 +11,9 @@ module.exports = {
      * 기관 데이터 불러오기
      * */
     getCompanyInfo: ipcMain.on('getCompanyInfo', (event, args) => {
-        db = new sqlite3.Database('./db/evaluation.db');
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
         db.all(`
             SELECT a.id, a.name admin_name, a.roles, a.email, a.tel, a.phone, a.type, c.code, c.type company_type, c.name, c.address FROM admin a
             INNER JOIN company c ON a.company_seq = c.id
