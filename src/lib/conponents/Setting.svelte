@@ -44,7 +44,7 @@
         window.api.request('restore');
         window.api.response('restoreResponse', (data) => {
             if (data) {
-                alert('복원 완료');
+                alert('앱이 다시 실행됩니다.');
             }
         });
     }

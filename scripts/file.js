@@ -6,6 +6,7 @@ const {basename} = require('path');
 const path = require('path');
 const AdmZip = require('adm-zip');
 const childProcess = require('child_process');
+const fsExtra = require('fs-extra');
 
 let db;
 
@@ -306,66 +307,22 @@ module.exports = {
         })
     }),
     restore: ipcMain.on('restore', (event, args) => {
-        /*// 파일 선택 팝업 오픈
+        // 파일 선택 팝업 오픈
         dialog.showOpenDialog(mainWindow, {
             defaultPath: "C:", // 디폴트 경로
             properties: ["openFile"] // 저장 경로를 폴더로 변경
         }).then((result) => {
-            // app.quit();
-
-            let folderPath = path.join(__dirname, '../');
-            let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
-
-
-            // 현재 프로젝트 파일 삭제
-            fs.rmdirSync(folderPath, { recursive: true });
+            let tmpFolderPath = path.join(__dirname, '..', '../tmp');
+            let zip = new AdmZip(result.filePaths[0]);
 
             // 백업 파일 압축 해제
-            zip.extractAllToAsync(folderPath, true, null, () => {
-                // 복원 완료 시 처리
-                console.log('복원이 완료되었습니다.');
-            });
-
-
-
-
-
+            zip.extractAllToAsync(tmpFolderPath, true, true, () => {
+                console.log('extract finish');
+                // restore-event 이벤트 수동으로 발생
+                app.emit('restore-event');
+                event.sender.send('restoreResponse', true);
                 app.quit();
-            })
-        })*/
-        dialog.showOpenDialog(mainWindow, {
-            defaultPath: "C:",
-            properties: ["openFile"]
-        }).then((result) => {
-            let folderPath = path.join(__dirname, '../');
-            let tmpFolderPath = path.join(__dirname, '../tmp');
-            let zip = new AdmZip(result.filePaths[0]);
-            if (!fs.existsSync(tmpFolderPath)) {
-                fs.mkdirSync(tmpFolderPath);
-            }
-            zip.extractAllToAsync(tmpFolderPath, true, true, (err) => {
-                if (err) {
-                    console.log('extractAllToAsync err:: ', err)
-                } else {
-                    console.log('압축해제 완료');
-                    // 앱 실행중이라 복사 안되는지?
-                    childProcess.exec(`xcopy ${tmpFolderPath} ${folderPath} /e /h /k /y`,{encoding:"utf-8"}, (stderr) => {
-                        if (stderr) {
-                            console.log('xcopy error:: ', stderr.message);
-                        } else {
-                            childProcess.exec(`rmdir /s /q ${tmpFolderPath}`, {encoding:"utf-8"}, (stderr) => {
-                                if (stderr) {
-                                    console.log('rmdir error:: ', stderr.message);
-                                } else {
-                                    console.log('파일 복사 및 tmp 파일 삭제 완료');
-                                    app.quit();
-                                    app.relaunch();
-                                }
-                            });
-                        }
-                    });
-                }
-            })
+            });
         })
     }),
 };
