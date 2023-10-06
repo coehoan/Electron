@@ -42,12 +42,36 @@
             window.api.request('exportFile', $companyYear);
             window.api.response('fileResponse', (data) => {
                 if (data) {
-                    alert('제출완료');
+                    let data = {
+                        option: {
+                            type: 'info',
+                            buttons: [],
+                            defaultId: 0,
+                            title: '알림',
+                            message: '',
+                            detail: '제출완료',
+                        },
+                        callback: {}
+                    }
+                    window.api.request('dialog', data);
                     window.api.removeResponse('fileResponse');
                     $completeYn = 'Y'; // 현장실사 완료
                 }
             })
-        } else alert('답변이 완료되지 않았습니다.');
+        } else {
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '답변이 완료되지 않았습니다.',
+                },
+                callback: {}
+            }
+            window.api.request('dialog', data);
+        }
     }
 
     /**

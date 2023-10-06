@@ -48,14 +48,29 @@
      * 담당자 삭제
      * */
     function deleteAdmin (e) {
-        window.api.response('adminResponse', (data) => {
-            if (data) {
-                newAdminList = [];
-                // 담당자 저장, 삭제 성공 후 목록 재조회
-                window.api.request('getCompanyInfo');
+        if (companyInfo.length <= 1) {
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '1명 이상의 담당자 정보가 필요합니다.',
+                },
+                callback: {}
             }
-        })
-        window.api.request('deleteAdmin', e);
+            window.api.request('dialog', data);
+        } else {
+            window.api.response('adminResponse', (data) => {
+                if (data) {
+                    newAdminList = [];
+                    // 담당자 저장, 삭제 성공 후 목록 재조회
+                    window.api.request('getCompanyInfo');
+                }
+            })
+            window.api.request('deleteAdmin', e);
+        }
     }
 
     /**
@@ -117,18 +132,13 @@
             <tbody>
             {#each companyInfo as info}
                 <tr>
-                    <td style="display: none">{info.id}</td>
                     <td>{info.admin_name}</td>
                     <td>{info.roles}</td>
                     <td>{info.email}</td>
                     <td>{info.tel}</td>
                     <td>{info.phone}</td>
                     <td>{info.type}</td>
-                    {#if info.id > 1}
-                        <td>
-                            <button on:click={() => {deleteAdmin(info.id)}}>삭제</button>
-                        </td>
-                    {/if}
+                    <td><button on:click={() => {deleteAdmin(info.id)}}>삭제</button></td>
                 </tr>
             {/each}
             {#if newAdminList.length > 0}
@@ -141,7 +151,7 @@
                             <input bind:value={list.roles} style="width: 150px;" />
                         </td>
                         <td>
-                            <input bind:value={list.email} style="width: 150px;" />
+                            <input bind:value={list.email} style="width: 150px;" type="email"/>
                         </td>
                         <td>
                             <input bind:value={list.tel} style="width: 150px;" />

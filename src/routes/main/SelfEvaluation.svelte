@@ -39,11 +39,35 @@
             window.api.request('exportFile');
             window.api.response('fileResponse', (data) => {
                 if (data) {
-                    alert('제출완료');
+                    let data = {
+                        option: {
+                            type: 'info',
+                            buttons: [],
+                            defaultId: 0,
+                            title: '알림',
+                            message: '',
+                            detail: '제출 완료',
+                        },
+                        callback: {}
+                    }
+                    window.api.request('dialog', data);
                     window.api.removeResponse('fileResponse')
                 }
             })
-        } else alert('답변이 완료되지 않았습니다.');
+        } else {
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '답변이 완료되지 않았습니다.',
+                },
+                callback: {}
+            }
+            window.api.request('dialog', data);
+        }
     }
 
     /**

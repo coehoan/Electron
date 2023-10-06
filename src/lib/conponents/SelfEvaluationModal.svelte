@@ -112,14 +112,26 @@
      * */
     function moveToNext() {
         if (selectedSeq === questionList.length) {
-            alert('마지막 문항입니다.');
-            window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-            window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                questionList = data; // questionList 업데이트
-                selectedSeq = 1;
-                isModalShow = false;
-            })
-            document.getElementsByTagName('body')[0].style.overflow = 'auto';
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '마지막 문항입니다.',
+                },
+                callback: () => {
+                    window.api.request('dialog', data);
+                    window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+                    window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                        questionList = data; // questionList 업데이트
+                        selectedSeq = 1;
+                        isModalShow = false;
+                    })
+                    document.getElementsByTagName('body')[0].style.overflow = 'auto';
+                }
+            }
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close

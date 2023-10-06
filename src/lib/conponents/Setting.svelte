@@ -32,7 +32,18 @@
         window.api.request('backUp');
         window.api.response('backUpResponse', (data) => {
             if (data) {
-                alert('백업 완료');
+                let data = {
+                    option: {
+                        type: 'info',
+                        buttons: [],
+                        defaultId: 0,
+                        title: '알림',
+                        message: '',
+                        detail: '백업 완료',
+                    },
+                    callback: {}
+                }
+                window.api.request('dialog', data);
             }
         });
     }
@@ -44,7 +55,18 @@
         window.api.request('restore');
         window.api.response('restoreResponse', (data) => {
             if (data) {
-                alert('앱이 다시 실행됩니다.');
+                let data = {
+                    option: {
+                        type: 'info',
+                        buttons: [],
+                        defaultId: 0,
+                        title: '알림',
+                        message: '',
+                        detail: '앱이 다시 실행됩니다.',
+                    },
+                    callback: {}
+                }
+                window.api.request('dialog', data);
             }
         });
     }

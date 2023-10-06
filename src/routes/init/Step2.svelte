@@ -22,7 +22,20 @@
     function next() {
         if (!!selectedCompany) {
             window.api.request('setBasicInfo', selectedCompany);
-        } else alert('기관을 선택해주세요');
+        } else {
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '기관을 선택해주세요',
+                },
+                callback: {}
+            }
+            window.api.request('dialog', data);
+        }
     }
 </script>
 

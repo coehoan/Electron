@@ -48,7 +48,18 @@
      * */
     function next() {
         if (selectedSeq === questionList.length) {
-            alert('마지막 문항입니다.');
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '마지막 문항입니다.',
+                },
+                callback: {}
+            }
+            window.api.request('dialog', data);
             isModalShow = false;
             document.getElementsByTagName('body')[0].style.overflow = 'auto';
         } else {
