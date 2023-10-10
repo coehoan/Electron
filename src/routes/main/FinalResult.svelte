@@ -133,7 +133,7 @@
         </div>
     {/if}
         <div style="display: flex; justify-content: end; margin-top: 30px">
-            <button on:click={() => {isFileLoadShow = true}}>이전 데이터</button>
+            <button on:click={() => {isFileLoadShow = true; document.getElementsByTagName('body')[0].style.overflow = 'hidden';}}>이전 데이터</button>
             <button on:click={getFile} style="margin-left: 5px">불러오기</button>
             {#if $isFinalListShow}
                 <button on:click={getPDF} style="margin-left: 5px">PDF 출력</button>

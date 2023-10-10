@@ -17,11 +17,14 @@
     function fileUpload() {
         window.api.request('fileUpload');
         window.api.response('step1Response', (data) => {
-            if (data) {
+            if (data === 'canceled') {
+                console.log('Canceled');
+            } else if (data) {
                 push('/step2');
             } else {
                 console.log('Error occurred');
             }
+            window.api.removeResponse('step1Response');
         })
     }
 
@@ -80,7 +83,9 @@
     <div style="width: 40%; height: 300px; border: 1px solid black; background-color: white" on:click={preventModalClose}>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid black; padding: 5px">
             <div>환경설정</div>
-            <div style="margin-right: 10px; cursor:pointer; font-size: 20px" on:click={() => {isSettingShow = false}}>X</div>
+            <div style="margin-right: 10px; cursor:pointer; font-size: 20px" on:click={() => {isSettingShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
+                X
+            </div>
         </div>
         <div style="display: flex; justify-content: center; align-items: center; height: 260px">
             <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 80%; padding: 5px">

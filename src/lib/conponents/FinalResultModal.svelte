@@ -132,7 +132,7 @@
 <div class="modal-overlay" on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
     <div style="width: 100%; min-height: 700px; background-color: white; border: 1px solid black" on:click={preventModalClose}>
         <div style="border-bottom: 1px solid black; height: 30px; display: flex; justify-content: end">
-            <div style="cursor:pointer; font-size: 20px; margin-right: 10px" on:click={() => {isModalShow = false;}}>
+            <div style="cursor:pointer; font-size: 20px; margin-right: 10px" on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
                 X
             </div>
         </div>

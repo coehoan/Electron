@@ -67,6 +67,7 @@
                 }
             })
         }
+        document.getElementsByTagName('body')[0].style.overflow = 'auto'
     }
 </script>
 
@@ -74,7 +75,7 @@
     <div style=" border: 1px solid black; background-color: white" on:click={preventModalClose}>
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid black; padding: 5px">
             <div>최종결과 불러오기</div>
-            <div style="margin-right: 10px; cursor:pointer; font-size: 20px" on:click={() => {isFileLoadShow = false}}>X</div>
+            <div style="margin-right: 10px; cursor:pointer; font-size: 20px" on:click={() => {isFileLoadShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>X</div>
         </div>
         <div style="display: flex; justify-content: center; align-items: center">
             <div style="width: 100%; padding: 20px; margin-top: 10px; display: flex; flex-direction:column; justify-content: center; align-items: center">
@@ -90,7 +91,7 @@
                 {/if}
                 <div style="display: flex; justify-content: end; margin-top: 10px">
                     <button style="width: 70px" on:click={getOlderFile}>확인</button>
-                    <button style="margin-left: 5px; width: 70px" on:click={() => {isFileLoadShow = false}}>취소</button>
+                    <button style="margin-left: 5px; width: 70px" on:click={() => {isFileLoadShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>취소</button>
                 </div>
             </div>
         </div>
