@@ -172,7 +172,6 @@ module.exports = {
                     if (err) {
                         console.log('Inspect file upload error:: ', err.message);
                     } else {
-                        console.log('fileName:: ', fileName)
                         event.sender.send('inspectSaveFileResponse', fileName);
                     }
                 })
@@ -184,7 +183,8 @@ module.exports = {
      * */
     deleteFile: ipcMain.on('deleteFile', (event, args) => {
         let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
-        fs.unlink(`${filePath}\\${args.seq}\\${args.fileName}`, (err) => {
+        let year = new Date().getFullYear(); // 현재년도
+        fs.unlink(`${filePath}\\${year}\\${args.seq}\\${args.fileName}`, (err) => {
             if (err) {
                 console.log('File delete error:: ', err.message);
                 event.sender.send('deleteFileResponse', false);
@@ -367,7 +367,6 @@ module.exports = {
                 let folderPath = path.join(__dirname, '../');
                 zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
                 zip.writeZip(`${savePath}\\back_up.zip`, () => { // zip 파일을 선택 된 경로에 back_up.zip 으로 생성
-                    console.log('writeZip:: ', `${savePath}\\back_up.zip`)
                     event.sender.send('backUpResponse', true);
                 });
             } else event.sender.send('backUpResponse', 'canceled');
@@ -385,7 +384,6 @@ module.exports = {
 
                 // 백업 파일 압축 해제
                 zip.extractAllToAsync(tmpFolderPath, true, true, () => {
-                    console.log('extract finish');
                     // restore-event 이벤트 수동으로 발생
                     app.emit('restore-event');
                     event.sender.send('restoreResponse', true);
