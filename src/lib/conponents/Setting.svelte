@@ -31,7 +31,9 @@
     function backUp() {
         window.api.request('backUp');
         window.api.response('backUpResponse', (data) => {
-            if (data) {
+            if (data === 'canceled') {
+                console.log('Canceled.');
+            } else if (data) {
                 let data = {
                     option: {
                         type: 'info',
@@ -44,6 +46,7 @@
                 }
                 window.api.request('dialog', data);
             }
+            window.api.removeResponse('backUpResponse');
         });
     }
 
@@ -53,7 +56,9 @@
     function restore() {
         window.api.request('restore');
         window.api.response('restoreResponse', (data) => {
-            if (data) {
+            if (data === 'canceled') {
+                console.log('Canceled.');
+            } else if (data) {
                 let data = {
                     option: {
                         type: 'info',
@@ -66,6 +71,7 @@
                 }
                 window.api.request('dialog', data);
             }
+            window.api.removeResponse('restoreResponse');
         });
     }
 </script>

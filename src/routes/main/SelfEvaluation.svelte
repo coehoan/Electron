@@ -38,7 +38,9 @@
         if (checkSelfScores(questionList)) {
             window.api.request('exportSelfFile', $companyYear);
             window.api.response('fileResponse', (data) => {
-                if (data) {
+                if (data === 'canceled') {
+                    console.log('Canceled.');
+                } else if (data) {
                     let data = {
                         option: {
                             type: 'info',
@@ -48,10 +50,10 @@
                             message: '',
                             detail: '제출 완료',
                         }
-                    }
+                    };
                     window.api.request('dialog', data);
-                    window.api.removeResponse('fileResponse')
                 }
+                window.api.removeResponse('fileResponse');
             })
         } else {
             let data = {

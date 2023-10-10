@@ -42,7 +42,9 @@
         if (checkSelfScores(questionList)) {
             window.api.request('exportInspectFile', $companyYear);
             window.api.response('fileResponse', (data) => {
-                if (data) {
+                if (data === 'canceled') {
+                    console.log('Canceled.');
+                } else if (data) {
                     let data = {
                         option: {
                             type: 'info',
@@ -54,9 +56,9 @@
                         }
                     }
                     window.api.request('dialog', data);
-                    window.api.removeResponse('fileResponse');
                     $completeYn = 'Y'; // 현장실사 완료
                 }
+                window.api.removeResponse('fileResponse');
             })
         } else {
             let data = {

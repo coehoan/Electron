@@ -222,7 +222,11 @@
         // TODO: 동일 파일명 처리
         window.api.request('saveInspectFile', {selectedSeq: selectedSeq, year: $companyYear});
         window.api.response('inspectSaveFileResponse', (data) => {
-            fileList = [...fileList, data];
+            if (data === 'canceled') {
+                console.log('Canceled.')
+            } else {
+                fileList = [...fileList, data];
+            }
             window.api.removeResponse('inspectSaveFileResponse');
         })
     }

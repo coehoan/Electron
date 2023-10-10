@@ -58,7 +58,7 @@ module.exports = {
                                         zip.writeZip(`${savePath}/${args}_${company.name}_self_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_self_result.zip 으로 생성
                                             event.sender.send('fileResponse', true);
                                         });
-                                    }
+                                    } else event.sender.send('fileResponse', 'canceled');
                                 })
                             }
                         })
@@ -116,11 +116,13 @@ module.exports = {
 
                                             let zip = new AdmZip(); // 새로운 zip 파일 생성
                                             zip.addFile('inspect_result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // obj를 self_result.json 파일로 저장 후 zip 파일에 추가
-                                            zip.addLocalFolder(inspectFilePath); // 증빙자료 zip 파일에 추가
+                                            if (fs.existsSync(inspectFilePath)) {
+                                                zip.addLocalFolder(inspectFilePath); // 증빙자료 zip 파일에 추가
+                                            }
                                             zip.writeZip(`${savePath}/${args}_${company.name}_inspect_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_inspect_result.zip 으로 생성
                                                 event.sender.send('fileResponse', true);
                                             });
-                                        }
+                                        } else event.sender.send('fileResponse', 'canceled');
                                     })
                                 }
                             })
@@ -169,9 +171,12 @@ module.exports = {
                 fs.copyFile(filePath, `${savePath}${args.selectedSeq}\\${fileName}`, (err) => {
                     if (err) {
                         console.log('Inspect file upload error:: ', err.message);
-                    } else event.sender.send('inspectSaveFileResponse', fileName);
-                });
-            }
+                    } else {
+                        console.log('fileName:: ', fileName)
+                        event.sender.send('inspectSaveFileResponse', fileName);
+                    }
+                })
+            } else event.sender.send('inspectSaveFileResponse', 'canceled');
         })
     }),
     /**
@@ -234,7 +239,7 @@ module.exports = {
             dialog.showOpenDialog(mainWindow, {
                 properties: ['openFile'],
                 title: '파일 업로드'
-            }).then(async (result) => {
+            }).then((result) => {
                 if (!result.canceled) {
                     let res;
                     let year = new Date().getFullYear(); // 현재년도
@@ -344,7 +349,7 @@ module.exports = {
                             event.sender.send('getFinalFileResponse', true);
                         })
                     })
-                }
+                } else event.sender.send('getFinalFileResponse', 'canceled');
             });
         } catch (e) {
             event.sender.send('getFinalFileResponse', false);
@@ -365,7 +370,7 @@ module.exports = {
                     console.log('writeZip:: ', `${savePath}\\back_up.zip`)
                     event.sender.send('backUpResponse', true);
                 });
-            }
+            } else event.sender.send('backUpResponse', 'canceled');
         })
     }),
     restore: ipcMain.on('restore', (event, args) => {
@@ -386,7 +391,7 @@ module.exports = {
                     event.sender.send('restoreResponse', true);
                     app.quit();
                 });
-            }
+            } else event.sender.send('restoreResponse', 'canceled');
         })
     }),
 };

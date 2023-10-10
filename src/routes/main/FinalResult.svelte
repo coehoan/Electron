@@ -59,8 +59,11 @@
      * 평가 결과 파일 불러오기
      * */
     function getFile() {
+        window.api.request('getFinalFile');
         window.api.response('getFinalFileResponse', (data) => {
-            if (data) {
+            if (data === 'canceled') {
+                console.log('Canceled.');
+            } else if (data) {
                 window.api.request('getQuestionInfo');
                 window.api.response('selfResponse', (data) => {
                     questionList = data;
@@ -84,8 +87,8 @@
             } else {
 
             }
+            window.api.removeResponse('getFinalFileResponse');
         })
-        window.api.request('getFinalFile');
     }
 
     /**

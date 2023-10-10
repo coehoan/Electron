@@ -166,7 +166,7 @@ module.exports = {
                         })
                     })
                     event.sender.send('step1Response', true)
-                }
+                } else event.sender.send('step1Response', 'canceled')
             })
         } catch (err) {
             event.sender.send('step1Response', false)
