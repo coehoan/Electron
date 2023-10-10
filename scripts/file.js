@@ -14,9 +14,9 @@ module.exports = {
     fileRequest: (channel, handlers) => ipcMain.on(channel, handlers),
 
     /**
-     * 자체평가, 현장실사 최종제출
+     * 자체평가 최종제출
      * */
-    exportFile: ipcMain.on('exportFile', (event, args) => {
+    exportSelfFile: ipcMain.on('exportSelfFile', (event, args) => {
         let dbPath = path.join(__dirname, '../db');
         let dbFilePath = path.join(dbPath, '/evaluation.db');
         db = new sqlite3.Database(dbFilePath);
@@ -52,19 +52,78 @@ module.exports = {
                                 }).then((result) => {
                                     if (!result.canceled) {
                                         savePath = result.filePaths[0]; // 지정 경로
-                                        // fs.writeFileSync(path + '/result.json', JSON.stringify(obj)); // 해당 경로로 result.json 파일 생성
-                                        // event.sender.send('fileResponse', true)
 
                                         let zip = new AdmZip(); // 새로운 zip 파일 생성
-                                        let folderPath = path.join(__dirname, `../static/files/inspect/${args}`); // 해당년도 파일 경로
-                                        zip.addFile('result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // result.json을 버퍼로 읽은 후 zip 파일에 저장
-                                        zip.addLocalFolder(folderPath, '/'); // 해당년도 파일을 zip 파일에 저장
-                                        zip.writeZip(`${savePath}/result.zip`, () => { // zip 파일을 선택 된 경로에 result.zip 으로 생성
+                                        zip.addFile('self_result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // obj를 self_result.json 파일로 저장
+                                        zip.writeZip(`${savePath}/${args}_${company.name}_self_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_self_result.zip 으로 생성
                                             event.sender.send('fileResponse', true);
                                         });
                                     }
                                 })
                             }
+                        })
+                    }
+                })
+            }
+        })
+    }),
+    /**
+     * 현장실사 최종제출
+     * */
+    exportInspectFile: ipcMain.on('exportInspectFile', (event, args) => {
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
+        let savePath;
+        let question = [];
+        let admin = [];
+        let company;
+        let obj = {};
+        db.all('select * from questions', (err, rows) => {
+            if (err) {
+                console.log('Export Error:: ', err.message);
+            } else {
+                question = rows;
+                db.all(`SELECT * FROM admin`, (err, rows) => {
+                    if (err) {
+                        console.log('Export Error:: ', err.message);
+                    } else {
+                        admin = rows;
+                        // completeYn 수정
+                        db.run(`
+                            UPDATE company
+                            SET completeYn = 'Y'
+                            WHERE id = ${admin[0].company_seq}
+                        `, () => {
+                            db.get(`SELECT * FROM company WHERE id = ${admin[0].company_seq}`, (err, row) => {
+                                if (err) {
+                                    console.log('Export Error:: ', err.message);
+                                } else {
+                                    company = row;
+                                    obj = {
+                                        'questions': question,
+                                        'admin': admin,
+                                        'company': company
+                                    }
+                                    // 폴더 선택 팝업 오픈
+                                    dialog.showOpenDialog(mainWindow, {
+                                        defaultPath: "C:", // 디폴트 경로
+                                        properties: ["openDirectory"] // 저장 경로를 폴더로 변경
+                                    }).then((result) => {
+                                        if (!result.canceled) {
+                                            savePath = result.filePaths[0]; // 지정 경로
+                                            let inspectFilePath = path.join(__dirname, `../static/files/inspect/${args}`); // 현장실사 증빙자료 경로
+
+                                            let zip = new AdmZip(); // 새로운 zip 파일 생성
+                                            zip.addFile('inspect_result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // obj를 self_result.json 파일로 저장 후 zip 파일에 추가
+                                            zip.addLocalFolder(inspectFilePath); // 증빙자료 zip 파일에 추가
+                                            zip.writeZip(`${savePath}/${args}_${company.name}_inspect_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_inspect_result.zip 으로 생성
+                                                event.sender.send('fileResponse', true);
+                                            });
+                                        }
+                                    })
+                                }
+                            })
                         })
                     }
                 })
@@ -116,6 +175,18 @@ module.exports = {
         })
     }),
     /**
+     * 현장실사 첨부파일 삭제
+     * */
+    deleteFile: ipcMain.on('deleteFile', (event, args) => {
+        let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
+        fs.unlink(`${filePath}\\${args.seq}\\${args.fileName}`, (err) => {
+            if (err) {
+                console.log('File delete error:: ', err.message);
+                event.sender.send('deleteFileResponse', false);
+            } else event.sender.send('deleteFileResponse', true)
+        })
+    }),
+    /**
      * 현장실사 첨부파일 리스트 가져오기
      * */
     getFileList: ipcMain.on('getFileList', (event, args) => {
@@ -149,31 +220,14 @@ module.exports = {
                     event.sender.send('olderFileDataResponse', true);
                 }
             });
-            /*fs.readdir(filePath + args.seq, async (err, files) => {
-                let fileName = files[0];
-                let res = await readFile(`${filePath}${args.seq}\\${fileName}`);
-                if (err) {
-                    console.log('Older file read error:: ', err.message);
-                } else {
-                    event.sender.send('olderFileDataResponse', res);
-                }
-            });*/
         }
     }),
     /**
-     * 현장실사 첨부파일 삭제
-     * */
-    deleteFile: ipcMain.on('deleteFile', (event, args) => {
-        let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
-        fs.unlink(`${filePath}\\${args.seq}\\${args.fileName}`, (err) => {
-            if (err) {
-                console.log('File delete error:: ', err.message);
-                event.sender.send('deleteFileResponse', false);
-            } else event.sender.send('deleteFileResponse', true)
-        })
-    }),
-    /**
      * 최종결과 파일 불러온 뒤 DB 저장
+     * 1. 최종결과 zip 파일 오픈
+     * 2. 압축 해제 후 files/inspect/현재년도 폴더 덮어쓰기
+     * 3. final_result.json 파일로 현재 db 파일 업데이트
+     * 4. files/result 폴더에 해당 db 파일 저장 (년도별 관리)
      * */
     getFinalFile: ipcMain.on('getFinalFile', (event, args) => {
         try {
@@ -184,17 +238,18 @@ module.exports = {
                 if (!result.canceled) {
                     let res;
                     let year = new Date().getFullYear(); // 현재년도
-                    let savePath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 파일 경로
+                    let savePath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 증빙자료 파일 경로
                     let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
                     let zipEntries = zip.getEntries(); // zip 파일 컨텐츠
                     zipEntries.forEach((e) => {
                         // zip 파일 중 result.json 파일을 찾는다.
-                        if (e.entryName === 'result.json') {
+                        if (e.entryName === 'final_result.json') {
                             res = JSON.parse(e.getData().toString('utf8'));
                         }
                     })
-                    zip.extractAllTo(savePath, true); // zip 파일 전체를 해당 경로로 저장한다. (덮어쓰기)
-                    fs.unlinkSync(`${savePath}\\result.json`); // 저장 후 result.json 파일 삭제
+                    fsExtra.emptyDirSync(savePath); // savePath 내 모든 파일 삭제
+                    zip.extractAllTo(savePath, true); // savePath에 zip 파일 압축해제 (덮어쓰기)
+                    fs.unlinkSync(`${savePath}\\final_result.json`); // 저장 후 final_result.json 파일 삭제
 
                     let dbPath = path.join(__dirname, '../db');
                     let dbFilePath = path.join(dbPath, '/evaluation.db');
@@ -211,7 +266,7 @@ module.exports = {
                         '${res.company.name}', 
                         '${res.company.type}', 
                         '${res.company.address}', 
-                        '${res.company.activity_value}', 
+                        '${res.company.activity_value}',
                         '${res.company.training_max}', 
                         '${res.company.training_value}', 
                         '${res.company.protect_max}', 
@@ -286,7 +341,6 @@ module.exports = {
                                     console.log('Inspect file upload error:: ', err.message);
                                 }
                             });
-
                             event.sender.send('getFinalFileResponse', true);
                         })
                     })

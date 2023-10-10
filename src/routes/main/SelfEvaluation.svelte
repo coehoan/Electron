@@ -3,9 +3,9 @@
     import SelfEvaluationModal from "../../lib/conponents/SelfEvaluationModal.svelte";
     import {checkSelfScores} from "../../../scripts/util/common";
     import Header from "../../lib/layout/Header.svelte";
-    import {completeYn} from "../../../scripts/store/store";
+    import {companyYear, completeYn} from "../../../scripts/store/store";
 
-    let title = '보안관리 실태평가';
+    let title = '보안관리 자체평가';
     let questionList = [];
     $: selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
@@ -36,7 +36,7 @@
     function submit() {
         // 미응답 항목 체크
         if (checkSelfScores(questionList)) {
-            window.api.request('exportFile');
+            window.api.request('exportSelfFile', $companyYear);
             window.api.response('fileResponse', (data) => {
                 if (data) {
                     let data = {

@@ -232,7 +232,7 @@
                     <div style="min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px">{questionList[selectedSeq - 1].inspect_memo}</div>
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
-                        <div style="width: 100%; height: 65px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
+                        <div style="width: 100%; height: 70px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
                             {#if fileList.length > 0}
                                 {#each fileList as list}
                                     <span style="padding: 3px;">{list}</span>

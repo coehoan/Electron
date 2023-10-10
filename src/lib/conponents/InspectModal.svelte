@@ -375,7 +375,7 @@
 
                     <div style="font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
-                        <div style="width: 91%; height: 65px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
+                        <div style="width: 91%; height: 70px; border: 1px solid black; padding: 7px; overflow: auto; display: flex; flex-direction: column; gap: 5px">
                             {#if fileList.length > 0}
                                 {#each fileList as list}
                                     <span style="padding: 3px; cursor:pointer;" on:click={() => {fileSelect(event, list)}}>{list}</span>
