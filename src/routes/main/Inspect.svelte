@@ -50,8 +50,7 @@
                             title: '알림',
                             message: '',
                             detail: '제출완료',
-                        },
-                        callback: {}
+                        }
                     }
                     window.api.request('dialog', data);
                     window.api.removeResponse('fileResponse');
@@ -67,8 +66,7 @@
                     title: '알림',
                     message: '',
                     detail: '답변이 완료되지 않았습니다.',
-                },
-                callback: {}
+                }
             }
             window.api.request('dialog', data);
         }

@@ -34,27 +34,28 @@ module.exports = {
                 properties: ['openFile'],
                 title: '파일 업로드'
             }).then(async (result) => {
-                let res = await readFile(result.filePaths[0]);
+                if (!result.canceled) {
+                    let res = await readFile(result.filePaths[0]);
 
-                // TODO: NCTI에서 받은 json 파일 자동 파싱하기
-                /*let object = Object.keys(res);
-                object.forEach((e, i) => {
-                    let key = object[i];
-                    console.log(key);
-                    res[key].forEach((e) => {
-                        console.log(Object.keys(e))})
-                })*/
-                let dbPath = path.join(__dirname, '../db');
-                let dbFilePath = path.join(dbPath, '/evaluation.db');
-                if (!fs.existsSync(dbPath)) {
-                    fs.mkdirSync(dbPath);
-                }
-                if (!fs.existsSync(dbFilePath)) {
-                    fs.writeFileSync(dbFilePath, ''); // evaluation.db 파일 생성
-                }
-                db = new sqlite3.Database(dbFilePath); // evaluation.db 접속
-                db.serialize((err, event) => { // 쿼리 실행
-                    db.run(`
+                    // TODO: NCTI에서 받은 json 파일 자동 파싱하기
+                    /*let object = Object.keys(res);
+                    object.forEach((e, i) => {
+                        let key = object[i];
+                        console.log(key);
+                        res[key].forEach((e) => {
+                            console.log(Object.keys(e))})
+                    })*/
+                    let dbPath = path.join(__dirname, '../db');
+                    let dbFilePath = path.join(dbPath, '/evaluation.db');
+                    if (!fs.existsSync(dbPath)) {
+                        fs.mkdirSync(dbPath);
+                    }
+                    if (!fs.existsSync(dbFilePath)) {
+                        fs.writeFileSync(dbFilePath, ''); // evaluation.db 파일 생성
+                    }
+                    db = new sqlite3.Database(dbFilePath); // evaluation.db 접속
+                    db.serialize((err, event) => { // 쿼리 실행
+                        db.run(`
                     CREATE TABLE IF NOT EXISTS questions (
                         id INTEGER PRIMARY KEY, 
                         num INTEGER,
@@ -81,7 +82,7 @@ module.exports = {
                         self_memo TEXT NULL,
                         inspect_memo TEXT NULL)
                 `);
-                    db.run(`
+                        db.run(`
                     CREATE TABLE IF NOT EXISTS company (
                         id INTEGER PRIMARY KEY, 
                         code INTEGER,
@@ -97,12 +98,12 @@ module.exports = {
                         completeYn TEXT,
                         year TEXT)
                 `);
-                    db.run(`
+                        db.run(`
                     CREATE TABLE IF NOT EXISTS basic_info (
                         id INTEGER PRIMARY KEY, 
                         company_seq INTEGER)
                 `);
-                    db.run(`
+                        db.run(`
                     CREATE TABLE IF NOT EXISTS admin (
                         id INTEGER PRIMARY KEY,
                         basic_info_seq INTEGER, 
@@ -115,8 +116,8 @@ module.exports = {
                         type TEXT
                         )
                 `);
-                    res.questions.forEach((e) => {
-                        db.run(`
+                        res.questions.forEach((e) => {
+                            db.run(`
                         INSERT INTO questions (num, type, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score, stalenessYn, evidence, comment, self_memo, inspect_memo)
                         VALUES(
                             '${e.num}',
@@ -144,9 +145,9 @@ module.exports = {
                             '${e.inspect_memo}'
                             )
                     `);
-                    })
-                    res.company.forEach((e) => {
-                        db.run(`
+                        })
+                        res.company.forEach((e) => {
+                            db.run(`
                         INSERT INTO company (code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn, year) 
                         VALUES(
                             '${e.code}', 
@@ -162,9 +163,10 @@ module.exports = {
                             '${e.completeYn}',
                             '${e.year}')
                     `);
+                        })
                     })
-                })
-                event.sender.send('step1Response', true)
+                    event.sender.send('step1Response', true)
+                }
             })
         } catch (err) {
             event.sender.send('step1Response', false)

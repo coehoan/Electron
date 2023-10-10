@@ -119,16 +119,22 @@
                     message: '',
                     detail: '마지막 문항입니다.',
                 },
-                callback: {}
+                callbackId: 'inspectMoveToNext'
             }
             window.api.request('dialog', data);
-            window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
-            window.api.response('selfResponse', (data) => { // question 받아오기 결과
-                questionList = data; // questionList 업데이트
-                selectedSeq = 1;
-                isModalShow = false;
+            window.api.response('dialogCallback', (data) => {
+                if (data === 'inspectMoveToNext') {
+                    isModalShow = false;
+                    window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+                    window.api.response('selfResponse', (data) => { // question 받아오기 결과
+                        questionList = data; // questionList 업데이트
+                        selectedSeq = 1;
+                    })
+                    document.getElementsByTagName('body')[0].style.overflow = 'auto';
+                    window.api.removeResponse('dialogCallback');
+                    window.api.removeResponse('selfResponse');
+                }
             })
-            document.getElementsByTagName('body')[0].style.overflow = 'auto';
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close
@@ -247,8 +253,7 @@
                     title: '알림',
                     message: '',
                     detail: '파일을 선택해주세요.',
-                },
-                callback: {}
+                }
             }
             window.api.request('dialog', data);
         } else {

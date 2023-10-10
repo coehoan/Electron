@@ -121,17 +121,22 @@
                     message: '',
                     detail: '마지막 문항입니다.',
                 },
-                callback: () => {
-                    window.api.request('dialog', data);
+                callbackId: 'selfMoveToNext'
+            }
+            window.api.request('dialog', data);
+            window.api.response('dialogCallback', (data) => {
+                if (data === 'selfMoveToNext') {
                     window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
                     window.api.response('selfResponse', (data) => { // question 받아오기 결과
                         questionList = data; // questionList 업데이트
                         selectedSeq = 1;
-                        isModalShow = false;
                     })
+                    isModalShow = false; // 모달창 닫기
                     document.getElementsByTagName('body')[0].style.overflow = 'auto';
+                    window.api.removeResponse('dialogCallback');
+                    window.api.removeResponse('selfResponse');
                 }
-            }
+            });
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close

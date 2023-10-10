@@ -57,11 +57,16 @@
                     message: '',
                     detail: '마지막 문항입니다.',
                 },
-                callback: {}
+                callbackId: 'finalMoveToNext'
             }
             window.api.request('dialog', data);
-            isModalShow = false;
-            document.getElementsByTagName('body')[0].style.overflow = 'auto';
+            window.api.response('dialogCallback', (data) => {
+                if (data === 'finalMoveToNext') {
+                    isModalShow = false;
+                    document.getElementsByTagName('body')[0].style.overflow = 'auto';
+                    window.api.removeResponse('dialogCallback');
+                }
+            })
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close

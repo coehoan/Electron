@@ -57,8 +57,7 @@
                     title: '알림',
                     message: '',
                     detail: '1명 이상의 담당자 정보가 필요합니다.',
-                },
-                callback: {}
+                }
             }
             window.api.request('dialog', data);
         } else {
@@ -87,7 +86,17 @@
         if (newAdminList.every((e) => !Object.values(e).includes(''))) {
             window.api.request('saveAdmin', newAdminList);
         } else {
-            console.log('값을 입력해주세요');
+            let data = {
+                option: {
+                    type: 'info',
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '빈 값을 확인해주세요.',
+                }
+            }
+            window.api.request('dialog', data);
         }
     }
 

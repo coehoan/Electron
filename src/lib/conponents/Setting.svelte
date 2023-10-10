@@ -40,8 +40,7 @@
                         title: '알림',
                         message: '',
                         detail: '백업 완료',
-                    },
-                    callback: {}
+                    }
                 }
                 window.api.request('dialog', data);
             }
@@ -63,8 +62,7 @@
                         title: '알림',
                         message: '',
                         detail: '앱이 다시 실행됩니다.',
-                    },
-                    callback: {}
+                    }
                 }
                 window.api.request('dialog', data);
             }
