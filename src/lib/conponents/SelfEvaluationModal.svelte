@@ -14,6 +14,7 @@
     export function preventModalClose(event) {
         event.stopPropagation(); // 모달 클릭 이벤트 중지
     }
+    let subAnswerElements = [];
 
     onMount(() => {
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
@@ -149,6 +150,8 @@
                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                subAnswerElements = document.getElementsByName('answer');
+                subAnswerElements[0].focus();
             }
             // 리스너 삭제
             window.api.removeResponse('evalSaveResponse');
