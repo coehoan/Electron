@@ -1,8 +1,6 @@
 const {ipcMain, dialog} = require('electron');
-const path = require("path");
 const {mainWindow} = require("../electron/main");
 
-let db;
 let isOpenDialog = false;
 
 module.exports = {

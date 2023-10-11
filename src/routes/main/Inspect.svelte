@@ -1,7 +1,7 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
     import {onDestroy, onMount} from "svelte";
-    import {checkInspectScores, checkSelfScores} from "../../../scripts/util/common";
+    import {checkInspectScores} from "../../../scripts/util/common";
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
 
