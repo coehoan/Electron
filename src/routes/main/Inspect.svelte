@@ -5,7 +5,7 @@
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
 
-    let title = '보안관리 현장실사';
+    let title = '현장실사';
     let questionList = [];
     $: selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수

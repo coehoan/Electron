@@ -12,7 +12,7 @@
     import FinalResultModal from "../../lib/conponents/FinalResultModal.svelte";
     import FinalResultFileLoad from "../../lib/conponents/FinalResultFileLoad.svelte";
 
-    let title = '보안관리 결과';
+    let title = '평가결과';
     let questionList = [];
     let companyResultList = [];
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수

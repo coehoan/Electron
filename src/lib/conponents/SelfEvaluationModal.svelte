@@ -173,10 +173,14 @@
 
     function keyboardEvent(e) {
         if (document.activeElement.id !== 'textarea') {
-            if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter') {
+            // 숫자입력 || numpad로 시작 && numpadEnter 아님 && numpad1, numpad2 처럼 숫자가 포함되어 있음(numpad 특수문자 제외를 위함)
+            if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter' && /[0-9]/.test(e.code)) {
                 if ($completeYn !== 'Y') {
                     if (questionList[selectedSeq - 1].type === '객관식') {
-                        checkedAnswer = Number(e.key);
+                        // 키패드로 입력한 숫자가 전체 답변 갯수보다 클 경우 마지막번호 체크
+                        if (Number(e.key) > answerList.length) {
+                            checkedAnswer = answerList.length;
+                        } else checkedAnswer = Number(e.key);
                     }
                 }
             } else {

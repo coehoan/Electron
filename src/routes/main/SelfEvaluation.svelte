@@ -5,7 +5,7 @@
     import Header from "../../lib/layout/Header.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
 
-    let title = '보안관리 자체평가';
+    let title = '자체평가';
     let questionList = [];
     $: selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
