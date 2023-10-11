@@ -5,10 +5,10 @@
     function fileUpload() {
         window.api.request('fileUpload');
         window.api.response('step1Response', (data) => {
-            if (data) {
+            if (data === 'canceled') {
+                console.log('Canceled.');
+            } else if (data) {
                 push('/step2');
-            } else if (data === 'canceled') {
-                console.log('Canceled.')
             } else {
                 console.log('Error occurred');
             }

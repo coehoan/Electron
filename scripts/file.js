@@ -243,18 +243,24 @@ module.exports = {
                 if (!result.canceled) {
                     let res;
                     let year = new Date().getFullYear(); // 현재년도
-                    let savePath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 증빙자료 파일 경로
+                    let inspectFilesPath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 증빙자료 파일 경로
                     let zip = new AdmZip(result.filePaths[0]); // zip 파일 생성
                     let zipEntries = zip.getEntries(); // zip 파일 컨텐츠
                     zipEntries.forEach((e) => {
-                        // zip 파일 중 result.json 파일을 찾는다.
+                        // zip 파일 중 final_result.json 파일을 찾는다.
                         if (e.entryName === 'final_result.json') {
                             res = JSON.parse(e.getData().toString('utf8'));
                         }
                     })
-                    fsExtra.emptyDirSync(savePath); // savePath 내 모든 파일 삭제
-                    zip.extractAllTo(savePath, true); // savePath에 zip 파일 압축해제 (덮어쓰기)
-                    fs.unlinkSync(`${savePath}\\final_result.json`); // 저장 후 final_result.json 파일 삭제
+                    // final_result.json의 company.year가 현재년도가 아닌 경우
+                    if (year !== new Date(res.company.year).getFullYear()) {
+                        year = res.company.year;
+                        inspectFilesPath = path.join(__dirname, `../static/files/inspect/${res.company.year}`);
+                    }
+
+                    fsExtra.emptyDirSync(inspectFilesPath); // savePath 내 모든 파일 삭제
+                    zip.extractAllTo(inspectFilesPath, true); // savePath에 zip 파일 압축해제 (덮어쓰기)
+                    fs.unlinkSync(`${inspectFilesPath}\\final_result.json`); // 저장 후 final_result.json 파일 삭제
 
                     let dbPath = path.join(__dirname, '../db');
                     let dbFilePath = path.join(dbPath, '/evaluation.db');
