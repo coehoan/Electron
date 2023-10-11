@@ -1,7 +1,7 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
     import {onDestroy, onMount} from "svelte";
-    import {checkSelfScores} from "../../../scripts/util/common";
+    import {checkInspectScores, checkSelfScores} from "../../../scripts/util/common";
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
 
@@ -39,7 +39,7 @@
      * */
     function submit() {
         // 미응답 항목 체크
-        if (checkSelfScores(questionList)) {
+        if (checkInspectScores(questionList)) {
             window.api.request('exportInspectFile', $companyYear);
             window.api.response('fileResponse', (data) => {
                 if (data === 'canceled') {

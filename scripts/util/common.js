@@ -21,6 +21,14 @@ export function checkSelfScores(data) {
 }
 
 /**
+ * inspect_score에 빈값 있는지 체크
+ * 빈값이 있으면 false, 없으면 true 리턴
+ * */
+export function checkInspectScores(data) {
+    return data.every(item => !!item.inspect_score);
+}
+
+/**
  * questionList 에서 answer, anspoint만 추출
  * */
 export function extractAnswers(data) {
