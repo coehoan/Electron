@@ -126,7 +126,7 @@
             }
             window.api.request('dialog', data);
             window.api.response('dialogCallback', (data) => {
-                if (data === 'selfMoveToNext') {
+                if (data.callbackId === 'selfMoveToNext') {
                     window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
                     window.api.response('selfResponse', (data) => { // question 받아오기 결과
                         questionList = data; // questionList 업데이트

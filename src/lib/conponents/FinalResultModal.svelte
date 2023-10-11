@@ -61,7 +61,7 @@
             }
             window.api.request('dialog', data);
             window.api.response('dialogCallback', (data) => {
-                if (data === 'finalMoveToNext') {
+                if (data.callbackId === 'finalMoveToNext') {
                     isModalShow = false;
                     document.getElementsByTagName('body')[0].style.overflow = 'auto';
                     window.api.removeResponse('dialogCallback');

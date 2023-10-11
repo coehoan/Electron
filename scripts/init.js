@@ -176,7 +176,7 @@ module.exports = {
      * 기관 리스트 불러오기
      * */
     getCompanyList: ipcMain.on('getCompanyList', (event, args) => {
-        db.all(`SELECT id, name FROM company`, (err, data) => {
+        db.all(`SELECT id, code, name FROM company ORDER BY name`, (err, data) => {
             if (err) {
                 console.log('Select Error:: ', err.message);
             } else {

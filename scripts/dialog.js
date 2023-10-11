@@ -3,16 +3,21 @@ const path = require("path");
 const {mainWindow} = require("../electron/main");
 
 let db;
+let isOpenDialog = false;
 
 module.exports = {
     dialogRequest: (channel, handlers) => ipcMain.on(channel, handlers),
     /**
-     * 평가 답변 저장
+     * 알림창 오픈
      * */
     dialog: ipcMain.on('dialog', (event, args) => {
-        dialog.showMessageBox(mainWindow, args.option)
-            .then(r => {
-                event.sender.send('dialogCallback', args.callbackId)
-            });
+        if (!isOpenDialog) {
+            isOpenDialog = true;
+            dialog.showMessageBox(mainWindow, args.option)
+                .then(result => {
+                    event.sender.send('dialogCallback', {callbackId: args.callbackId, buttonId: result.response});
+                    isOpenDialog = false;
+                });
+        }
     })
 };
