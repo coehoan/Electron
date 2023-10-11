@@ -1,6 +1,7 @@
 <script>
     import {push} from "svelte-spa-router";
     import {onDestroy} from "svelte";
+    import {DialogType} from "../../../scripts/util/enum";
 
     export let isSettingShow = true;
     export function preventModalClose(event) {
@@ -39,7 +40,7 @@
             } else if (data) {
                 let data = {
                     option: {
-                        type: 'info',
+                        type: DialogType.Info,
                         buttons: [],
                         defaultId: 0,
                         title: '알림',
@@ -64,7 +65,7 @@
             } else if (data) {
                 let data = {
                     option: {
-                        type: 'info',
+                        type: DialogType.Info,
                         buttons: [],
                         defaultId: 0,
                         title: '알림',

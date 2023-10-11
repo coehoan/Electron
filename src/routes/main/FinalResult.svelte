@@ -11,8 +11,9 @@
     } from "../../../scripts/store/store";
     import FinalResultModal from "../../lib/conponents/FinalResultModal.svelte";
     import FinalResultFileLoad from "../../lib/conponents/FinalResultFileLoad.svelte";
+    import {MainTitle, Yn} from "../../../scripts/util/enum";
 
-    let title = '평가결과';
+    let title = MainTitle.FinalResult;
     let questionList = [];
     let companyResultList = [];
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
@@ -77,7 +78,7 @@
                     $companySeq = data.id;
                     $companyCode = data.code;
                     $companyYear = data.year;
-                    $completeYn = 'Y'; // 현장실사 완료
+                    $completeYn = Yn.Y; // 현장실사 완료
 
                     window.api.removeResponse('mainResponse');
                 })

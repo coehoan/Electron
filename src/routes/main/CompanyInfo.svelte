@@ -2,8 +2,9 @@
     import {companySeq} from "../../../scripts/store/store";
     import {onDestroy, onMount} from "svelte";
     import Header from "../../lib/layout/Header.svelte";
+    import {DialogType, MainTitle} from "../../../scripts/util/enum";
 
-    let title = '기관 정보';
+    let title = MainTitle.CompanyInfo;
     let companyInfo = [];
     let newAdminList =[];
 
@@ -51,7 +52,7 @@
         if (companyInfo.length <= 1) {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
@@ -80,7 +81,7 @@
             if (data === 'duplicated') {
                 let data = {
                     option: {
-                        type: 'info',
+                        type: DialogType.Info,
                         buttons: [],
                         defaultId: 0,
                         title: '알림',
@@ -101,7 +102,7 @@
         } else {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',

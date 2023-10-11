@@ -2,6 +2,7 @@
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
     import {companyYear} from "../../../scripts/store/store";
+    import {DialogType, QuestionType, Yn} from "../../../scripts/util/enum";
 
     let answerList = [];
     let selfSubAnswerList = [];
@@ -50,7 +51,7 @@
         if (selectedSeq === questionList.length) {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
@@ -95,7 +96,7 @@
      * 답변 업데이트
      * */
     function updateAnswer() {
-        if (questionList[selectedSeq - 1].type === '객관식') {
+        if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
             // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
             selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result'];
             // 현장실사 답변 없는경우 자체평가 답변으로, 있는경우 해당 값으로 업데이트
@@ -146,7 +147,7 @@
                         {/each}
                     </select>
                     <div style="margin-left: 20px">
-                        <span>{questionList[selectedSeq - 1].stalenessYn === 'Y' ? '부실도 대상입니다.' : ''}</span>
+                        <span>{questionList[selectedSeq - 1].stalenessYn === Yn.Y ? '부실도 대상입니다.' : ''}</span>
                     </div>
                 </div>
                 {#if isCommentShow}
@@ -175,7 +176,7 @@
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">답변</div>
                     <div style="margin-top: 10px; border: 1px solid black; padding: 10px">
                         <!-- 객관식 -->
-                        {#if questionList[selectedSeq - 1].type === '객관식'}
+                        {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
                             {#each answerList as list, i}
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
@@ -206,7 +207,7 @@
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">현장실사 답변</div>
                     <div style="margin-top: 10px; border: 1px solid black; padding: 10px">
                         <!-- 객관식 -->
-                        {#if questionList[selectedSeq - 1].type === '객관식'}
+                        {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
                             {#each answerList as list, i}
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">

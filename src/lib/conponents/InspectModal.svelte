@@ -2,6 +2,7 @@
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
     import {companyYear, completeYn} from "../../../scripts/store/store";
+    import {DialogType, QuestionType, Yn} from "../../../scripts/util/enum";
 
     let answerList = [];
     let selfSubAnswerList = [];
@@ -60,7 +61,7 @@
      * 다음문제
      * */
     function next() {
-         if (questionList[selectedSeq - 1].type === '객관식') {
+         if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
             // 답변 체크 된 경우 저장 후 다음문항 이동
             if (inspectCheckedAnswer !== 0) {
                 data = {
@@ -73,7 +74,7 @@
             } else {
                 moveToNext();
             }
-        } else if (questionList[selectedSeq - 1].type === '주관식') {
+        } else if (questionList[selectedSeq - 1].type === QuestionType.SubAnswer) {
             let inputs = document.getElementsByName('answer');
             let values = Array.from(inputs, input => input.value);
             if (values.every(e => e !== '')) {
@@ -112,7 +113,7 @@
         if (selectedSeq === questionList.length) {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
@@ -171,7 +172,7 @@
      * 답변 업데이트
      * */
     function updateAnswer() {
-        if (questionList[selectedSeq - 1].type === '객관식') {
+        if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
             // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
             selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result'];
             // 현장실사 답변 없는경우 자체평가 답변으로, 있는경우 해당 값으로 업데이트
@@ -188,8 +189,8 @@
         if (document.activeElement.id !== 'textarea') { // textarea focus 상태일 때 해당 이벤트 제외
             // 숫자입력 || numpad로 시작 && numpadEnter 아님 && numpad1, numpad2 처럼 숫자가 포함되어 있음(numpad 특수문자 제외를 위함)
             if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter' && /[0-9]/.test(e.code)) {
-                if ($completeYn !== 'Y') {
-                    if (questionList[selectedSeq - 1].type === '객관식') {
+                if ($completeYn !== Yn.Y) {
+                    if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
                         // 키패드로 입력한 숫자가 전체 답변 갯수보다 클 경우 마지막번호 체크
                         if (Number(e.key) > answerList.length) {
                             inspectCheckedAnswer = answerList.length;
@@ -254,7 +255,7 @@
         if (!selectedFileName) {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
@@ -295,7 +296,7 @@
                         {/each}
                     </select>
                     <div style="margin-left: 20px">
-                        <span>{questionList[selectedSeq - 1].stalenessYn === 'Y' ? '부실도 대상입니다.' : ''}</span>
+                        <span>{questionList[selectedSeq - 1].stalenessYn === Yn.Y ? '부실도 대상입니다.' : ''}</span>
                     </div>
                 </div>
                 {#if isCommentShow}
@@ -324,7 +325,7 @@
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">답변</div>
                     <div style="margin-top: 10px; border: 1px solid black; padding: 10px">
                         <!-- 객관식 -->
-                        {#if questionList[selectedSeq - 1].type === '객관식'}
+                        {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
                             {#each answerList as list, i}
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
@@ -355,12 +356,12 @@
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">현장실사 답변</div>
                     <div style="margin-top: 10px; border: 1px solid black; padding: 10px">
                         <!-- 객관식 -->
-                        {#if questionList[selectedSeq - 1].type === '객관식'}
+                        {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
                             {#each answerList as list, i}
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer} disabled={$completeYn === 'Y'}/>
+                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer} disabled={$completeYn === Yn.Y}/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -372,13 +373,13 @@
                             {#each answerList as list, i}
                                 <div style="display: flex; justify-content: space-between">
                                     <span>{list[`answer${i+1}`]}</span>
-                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text" disabled={$completeYn === 'Y'}/>
+                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text" disabled={$completeYn === Yn.Y}/>
                                 </div>
                             {/each}
                         {/if}
                     </div>
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">현장실사 메모</div>
-                    <textarea id="textarea" style="width: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].inspect_memo} disabled={$completeYn === 'Y'}></textarea>
+                    <textarea id="textarea" style="width: 100%; min-height: 50px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].inspect_memo} disabled={$completeYn === Yn.Y}></textarea>
 
                     <div style="font-size: 20px; font-weight: bold;">파일첨부</div>
                     <div style="display: flex; justify-content: space-between; margin-top: 10px">
@@ -390,8 +391,8 @@
                             {/if}
                         </div>
                         <div style="width: 9%; text-align: center">
-                            <button on:click={saveInspectFile} disabled={$completeYn === 'Y'}>첨부</button>
-                            <button on:click={deleteInspectFile} disabled={$completeYn === 'Y'}>삭제</button>
+                            <button on:click={saveInspectFile} disabled={$completeYn === Yn.Y}>첨부</button>
+                            <button on:click={deleteInspectFile} disabled={$completeYn === Yn.Y}>삭제</button>
                         </div>
                     </div>
 

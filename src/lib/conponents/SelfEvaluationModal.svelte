@@ -2,6 +2,7 @@
     import {onDestroy, onMount} from "svelte";
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
     import {completeYn} from "../../../scripts/store/store";
+    import {DialogType, QuestionType, Yn} from "../../../scripts/util/enum";
 
     let answerList = [];
     let subAnswerList = [];
@@ -20,7 +21,7 @@
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
-            if (questionList[selectedSeq - 1].type === '객관식') {
+            if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
@@ -44,7 +45,7 @@
         if (selectedSeq !== 1) {
             selectedSeq = selectedSeq - 1;
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === '객관식') {
+            if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
@@ -62,7 +63,7 @@
             self_score: '',
             self_memo: ''
         };
-         if (questionList[selectedSeq - 1].type === '객관식') {
+         if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
             // 답변 체크 된 경우 저장 후 다음문항 이동
             if (checkedAnswer !== 0) {
                 data = {
@@ -75,7 +76,7 @@
             } else {
                 moveToNext();
             }
-        } else if (questionList[selectedSeq - 1].type === '주관식') {
+        } else if (questionList[selectedSeq - 1].type === QuestionType.SubAnswer) {
             let inputs = document.getElementsByName('answer');
             let values = Array.from(inputs, input => input.value);
 
@@ -115,7 +116,7 @@
         if (selectedSeq === questionList.length) {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
@@ -146,7 +147,7 @@
         window.api.response('selfResponse', (data) => { // question 받아오기 결과
             questionList = data; // questionList 업데이트
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === '객관식') {
+            if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
                 checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
@@ -175,8 +176,8 @@
         if (document.activeElement.id !== 'textarea') {
             // 숫자입력 || numpad로 시작 && numpadEnter 아님 && numpad1, numpad2 처럼 숫자가 포함되어 있음(numpad 특수문자 제외를 위함)
             if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter' && /[0-9]/.test(e.code)) {
-                if ($completeYn !== 'Y') {
-                    if (questionList[selectedSeq - 1].type === '객관식') {
+                if ($completeYn !== Yn.Y) {
+                    if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
                         // 키패드로 입력한 숫자가 전체 답변 갯수보다 클 경우 마지막번호 체크
                         if (Number(e.key) > answerList.length) {
                             checkedAnswer = answerList.length;
@@ -210,7 +211,7 @@
                         {/each}
                     </select>
                     <div style="margin-left: 20px">
-                        <span>{questionList[selectedSeq - 1].stalenessYn === 'Y' ? '부실도 대상입니다.' : ''}</span>
+                        <span>{questionList[selectedSeq - 1].stalenessYn === Yn.Y ? '부실도 대상입니다.' : ''}</span>
                     </div>
                 </div>
                 {#if isCommentShow}
@@ -236,12 +237,12 @@
             <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">답변</div>
             <div style="width: 60%; height: 100%; border: 1px solid black; margin-top: 10px; padding: 10px">
                 <!-- 객관식 -->
-                {#if questionList[selectedSeq - 1].type === '객관식'}
+                {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
                     {#each answerList as list, i}
                         {#if list[Object.keys(list)[0]] !== ''}
                             <div style="display: flex; justify-content: space-between">
                                 <div>
-                                    <input type="radio" value="{i + 1}" bind:group={checkedAnswer} disabled={$completeYn === 'Y'}/>
+                                    <input type="radio" value="{i + 1}" bind:group={checkedAnswer} disabled={$completeYn === Yn.Y}/>
                                     <span>{list[`answer${i + 1}`]}</span>
                                 </div>
                                 <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -253,7 +254,7 @@
                     {#each answerList as list, i}
                         <div style="display: flex; justify-content: space-between">
                             <span>{list[`answer${i+1}`]}</span>
-                            <input name="answer" bind:value={subAnswerList[i]} type="text" disabled={$completeYn === 'Y'}/>
+                            <input name="answer" bind:value={subAnswerList[i]} type="text" disabled={$completeYn === Yn.Y}/>
                         </div>
                     {/each}
                 {/if}

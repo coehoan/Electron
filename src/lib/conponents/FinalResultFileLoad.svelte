@@ -7,6 +7,7 @@
         companyYear, completeYn,
         isFinalListShow,
     } from "../../../scripts/store/store";
+    import {Yn} from "../../../scripts/util/enum";
 
     export let isFileLoadShow = true;
     export let questionList = [];
@@ -59,7 +60,7 @@
                         $companySeq = data.id;
                         $companyCode = data.code;
                         $companyYear = data.year;
-                        $completeYn = 'Y'; // 현장실사 완료
+                        $completeYn = Yn.Y; // 현장실사 완료
 
                         window.api.removeResponse('mainResponse');
                     })

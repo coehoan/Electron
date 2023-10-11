@@ -3,9 +3,10 @@
     import {companyCode, companyName, companySeq, companyYear, completeYn} from "../../../scripts/store/store";
     import Header from "../../lib/layout/Header.svelte";
     import {onDestroy, onMount} from "svelte";
+    import {MainTitle} from "../../../scripts/util/enum";
 
     let isSettingShow = false;
-    let title = '보안관리 실태평가';
+    let title = MainTitle.Main;
 
     onMount(() => {
         window.api.response('mainResponse', (data) => {

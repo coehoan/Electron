@@ -4,8 +4,9 @@
     import {checkInspectScores} from "../../../scripts/util/common";
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
+    import {DialogType, MainTitle, Yn} from "../../../scripts/util/enum";
 
-    let title = '현장실사';
+    let title = MainTitle.Inspect;
     let questionList = [];
     $: selfProgress = questionList.filter(e => e.self_result !== '').length; // 자체평가 진행도
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
@@ -47,7 +48,7 @@
                 } else if (data) {
                     let data = {
                         option: {
-                            type: 'info',
+                            type: DialogType.Info,
                             buttons: [],
                             defaultId: 0,
                             title: '알림',
@@ -56,14 +57,14 @@
                         }
                     }
                     window.api.request('dialog', data);
-                    $completeYn = 'Y'; // 현장실사 완료
+                    $completeYn = Yn.Y; // 현장실사 완료
                 }
                 window.api.removeResponse('fileResponse');
             })
         } else {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
@@ -129,7 +130,7 @@
     </div>
 
     <div style="display: flex; justify-content: end; margin-top: 30px">
-        {#if $completeYn !== 'Y'}
+        {#if $completeYn !== Yn.Y}
             <button on:click={submit}>Export</button>
         {/if}
     </div>

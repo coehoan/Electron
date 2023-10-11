@@ -1,6 +1,7 @@
 <script>
     import {onDestroy, onMount} from "svelte";
     import {push} from "svelte-spa-router";
+    import {DialogType} from "../../../scripts/util/enum";
     // 기관 선택 시 안내팝업 한 번 더 노출
     let companyList = [];
     let selectedCompanySeq;
@@ -23,7 +24,7 @@
             let selectedCompanyName = companyList.filter(e => e.code === selectedCompanySeq)[0].name;
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: ['OK', 'Cancel'],
                     defaultId: 0,
                     cancelId: 1,
@@ -43,7 +44,7 @@
         } else {
             let data = {
                 option: {
-                    type: 'info',
+                    type: DialogType.Info,
                     buttons: [],
                     defaultId: 0,
                     title: '알림',
