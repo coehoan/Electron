@@ -77,11 +77,24 @@
      * */
     function saveAdmin() {
         window.api.response('adminResponse', (data) => {
-            if (data) {
+            if (data === 'duplicated') {
+                let data = {
+                    option: {
+                        type: 'info',
+                        buttons: [],
+                        defaultId: 0,
+                        title: '알림',
+                        message: '',
+                        detail: '주담당자는 1명만 지정 가능합니다.',
+                    }
+                }
+                window.api.request('dialog', data);
+            } else if (data) {
                 newAdminList = [];
                 // 담당자 저장, 삭제 성공 후 목록 재조회
                 window.api.request('getCompanyInfo');
             }
+            window.api.removeResponse('adminResponse');
         })
         if (newAdminList.every((e) => !Object.values(e).includes(''))) {
             window.api.request('saveAdmin', newAdminList);
@@ -97,6 +110,7 @@
                 }
             }
             window.api.request('dialog', data);
+            window.api.removeResponse('adminResponse');
         }
     }
 

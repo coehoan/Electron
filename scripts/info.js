@@ -53,17 +53,24 @@ module.exports = {
      * */
     saveAdmin: ipcMain.on('saveAdmin', (event, args) => {
         try {
-            args.forEach((e) => {
-                db.run(`
-                    INSERT INTO admin('basic_info_seq', 'company_seq', 'name', 'roles', 'email', 'tel', 'phone', 'type')
-                    VALUES('${e.basic_info_seq}', '${e.company_seq}', '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
-                `, (err) => {
-                    if (err) {
-                        console.log('Admin data insert error occurred:: '.err.message);
-                    }
-                })
+            db.all(`SELECT * FROM admin`, (err, rows) => {
+                if (err) {
+                    console.log('get admin info error:: ', err.message);
+                } else if (rows.filter(e => e.type === '주담당자').length + args.filter(e => e.type === '주담당자').length > 1) { // 기존 담당자와 추가된 담당자의 주담당자 총 합이 1보다 클 때
+                    event.sender.send('adminResponse', 'duplicated');
+                } else {
+                    args.forEach((e) => {
+                        db.run(`
+                            INSERT INTO admin('basic_info_seq', 'company_seq', 'name', 'roles', 'email', 'tel', 'phone', 'type')
+                            VALUES('${e.basic_info_seq}', '${e.company_seq}', '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
+                        `, (err) => {
+                            if (err) {
+                                console.log('Admin data insert error occurred:: '.err.message);
+                            } else event.sender.send('adminResponse', true);
+                        })
+                    })
+                }
             })
-            event.sender.send('adminResponse', true);
         } catch (e) {
             event.sender.send('adminResponse', false);
         }
