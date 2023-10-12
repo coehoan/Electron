@@ -23,5 +23,6 @@ module.exports = {
                 event.sender.send('companyResultResponse', row);
             }
         })
+        db.close();
     })
 }

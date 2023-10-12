@@ -30,6 +30,7 @@ module.exports = {
                     }
                 })
             }
+            db.close();
         })
     })
 }

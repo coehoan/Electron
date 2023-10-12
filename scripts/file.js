@@ -5,7 +5,6 @@ const {mainWindow} = require('../electron/main');
 const {basename} = require('path');
 const path = require('path');
 const AdmZip = require('adm-zip');
-const childProcess = require('child_process');
 const fsExtra = require('fs-extra');
 
 let db;
@@ -65,6 +64,7 @@ module.exports = {
                     }
                 })
             }
+            db.close();
         })
     }),
     /**
@@ -130,15 +130,13 @@ module.exports = {
                     }
                 })
             }
+            db.close();
         })
     }),
     /**
      * 현장실사 점부파일 저장
      * */
     saveInspectFile: ipcMain.on('saveInspectFile', (event, args) => {
-        let dbPath = path.join(__dirname, '../db');
-        let dbFilePath = path.join(dbPath, '/evaluation.db');
-        db = new sqlite3.Database(dbFilePath);
         dialog.showOpenDialog(mainWindow, {
             properties: ['openFile'],
             title: '파일 업로드'
@@ -175,7 +173,9 @@ module.exports = {
                         event.sender.send('inspectSaveFileResponse', fileName);
                     }
                 })
-            } else event.sender.send('inspectSaveFileResponse', 'canceled');
+            } else {
+                event.sender.send('inspectSaveFileResponse', 'canceled');
+            }
         })
     }),
     /**
@@ -355,9 +355,13 @@ module.exports = {
                             event.sender.send('getFinalFileResponse', true);
                         })
                     })
-                } else event.sender.send('getFinalFileResponse', 'canceled');
+                } else {
+                    event.sender.send('getFinalFileResponse', 'canceled');
+                }
+                db.close();
             });
         } catch (e) {
+            db.close();
             event.sender.send('getFinalFileResponse', false);
         }
     }),

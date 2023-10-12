@@ -21,7 +21,10 @@ module.exports = {
             if (err) {
                 console.log('Question save error:: ', err.message);
                 event.sender.send('inspectSaveResponse', false)
-            } else event.sender.send('inspectSaveResponse', true)
+            } else {
+                event.sender.send('inspectSaveResponse', true)
+            }
+            db.close();
         })
     })
 };

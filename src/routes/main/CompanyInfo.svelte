@@ -79,6 +79,7 @@
                     newAdminList = [];
                     // 담당자 저장, 삭제 성공 후 목록 재조회
                     window.api.request('getCompanyInfo');
+                    window.api.removeResponse('adminResponse');
                 }
             })
             window.api.request('deleteAdmin', e);

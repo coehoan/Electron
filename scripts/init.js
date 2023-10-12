@@ -166,9 +166,13 @@ module.exports = {
                         })
                     })
                     event.sender.send('step1Response', true)
-                } else event.sender.send('step1Response', 'canceled')
+                } else {
+                    event.sender.send('step1Response', 'canceled')
+                }
+                db.close();
             })
         } catch (err) {
+            db.close();
             event.sender.send('step1Response', false)
         }
     }),
@@ -176,24 +180,34 @@ module.exports = {
      * 기관 리스트 불러오기
      * */
     getCompanyList: ipcMain.on('getCompanyList', (event, args) => {
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
         db.all(`SELECT id, code, name FROM company ORDER BY name`, (err, data) => {
             if (err) {
                 console.log('Select Error:: ', err.message);
             } else {
                 event.sender.send('step2CompanyList', data);
             }
+            db.close();
         })
     }),
     /**
      * 기관 정보 등록
      * */
     setBasicInfo: ipcMain.on('setBasicInfo', (event, args) => {
+        let dbPath = path.join(__dirname, '../db');
+        let dbFilePath = path.join(dbPath, '/evaluation.db');
+        db = new sqlite3.Database(dbFilePath);
         db.run(`
             INSERT INTO basic_info (company_seq)
             VALUES (${args})`, (err) => {
             if (err) {
                 console.log('Data Insert Error:: ', err.message);
-            } else event.sender.send('step2Response', true);
+            } else {
+                event.sender.send('step2Response', true);
+            }
+            db.close();
         })
     }),
     /**
@@ -201,19 +215,27 @@ module.exports = {
      * */
     setAdminInfo: ipcMain.on('setAdminInfo', (event, args) => {
         try {
-            // db = new sqlite3.Database(dbFilePath);
+            let dbPath = path.join(__dirname, '../db');
+            let dbFilePath = path.join(dbPath, '/evaluation.db');
+            db = new sqlite3.Database(dbFilePath);
             db.get(`SELECT id, company_seq FROM basic_info`, (err, row) => {
                 if (err) {
                     console.log('Select Error:: ', err.message);
                 } else {
                     db.run(`
                     INSERT INTO admin (basic_info_seq, company_seq, name, roles, email, tel, phone, type)
-                    VALUES ('${row.id}', '${row.company_seq}', '${args.name}', '${args.roles}', '${args.email}', '${args.tel}', '${args.phone}', '주담당자')
-                `)
+                    VALUES ('${row.id}', '${row.company_seq}', '${args.name}', '${args.roles}', '${args.email}', '${args.tel}', '${args.phone}', '주담당자')`, (err) => {
+                        if (err) {
+                            console.log('setAdminInfo insert error:: ', err)
+                        } else {
+                            event.sender.send('step3Response', true);
+                        }
+                        db.close();
+                    })
                 }
             });
-            event.sender.send('step3Response', true);
         } catch (e) {
+            db.close();
             event.sender.send('step3Response', false);
         }
     })

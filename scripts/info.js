@@ -25,6 +25,7 @@ module.exports = {
                 event.sender.send('infoResponse', data);
                 ipcMain.removeListener('infoResponse', () => {})
             }
+            db.close();
         })
     }),
 
@@ -33,17 +34,22 @@ module.exports = {
      * */
     deleteAdmin: ipcMain.on('deleteAdmin', (event, args) => {
         try {
+            let dbPath = path.join(__dirname, '../db');
+            let dbFilePath = path.join(dbPath, '/evaluation.db');
+            db = new sqlite3.Database(dbFilePath);
             db.run(`
-            DELETE FROM admin
-            WHERE id = ${args}
-        `, (err) => {
+                DELETE FROM admin
+                WHERE id = ${args}
+            `, (err) => {
                 if (err) {
                     console.log('Delete Admin Fail:: ', err.message);
                 } else {
                     event.sender.send('adminResponse', true);
                 }
+                db.close();
             })
         } catch (e) {
+            db.close();
             event.sender.send('adminResponse', false);
         }
     }),
@@ -53,6 +59,9 @@ module.exports = {
      * */
     saveAdmin: ipcMain.on('saveAdmin', (event, args) => {
         try {
+            let dbPath = path.join(__dirname, '../db');
+            let dbFilePath = path.join(dbPath, '/evaluation.db');
+            db = new sqlite3.Database(dbFilePath);
             db.all(`SELECT * FROM admin`, (err, rows) => {
                 if (err) {
                     console.log('get admin info error:: ', err.message);
@@ -70,8 +79,10 @@ module.exports = {
                         })
                     })
                 }
+                db.close();
             })
         } catch (e) {
+            db.close();
             event.sender.send('adminResponse', false);
         }
     })

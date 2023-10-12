@@ -22,6 +22,7 @@ module.exports = {
             } else {
                 event.sender.send('selfResponse', rows);
             }
+            db.close();
         })
     }),
 
@@ -40,7 +41,10 @@ module.exports = {
             if (err) {
                 console.log('Question save error:: ', err.message);
                 event.sender.send('evalSaveResponse', false)
-            } else event.sender.send('evalSaveResponse', true)
+            } else {
+                event.sender.send('evalSaveResponse', true)
+            }
+            db.close();
         })
     })
 };
