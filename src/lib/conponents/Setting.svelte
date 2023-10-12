@@ -4,6 +4,18 @@
     import {DialogType} from "../../../scripts/util/enum";
 
     export let isSettingShow = true;
+
+    let dialogOption = {
+        option: {
+            type: '',
+            buttons: [],
+            defaultId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        }
+    }
+
     export function preventModalClose(event) {
         event.stopPropagation(); // 모달 클릭 이벤트 중지
     }
@@ -38,7 +50,7 @@
             if (data === 'canceled') {
                 console.log('Canceled.');
             } else if (data) {
-                let data = {
+                dialogOption = {
                     option: {
                         type: DialogType.Info,
                         buttons: [],
@@ -48,7 +60,7 @@
                         detail: '백업 완료',
                     }
                 }
-                window.api.request('dialog', data);
+                window.api.request('dialog', dialogOption);
             }
             window.api.removeResponse('backUpResponse');
         });
@@ -63,7 +75,7 @@
             if (data === 'canceled') {
                 console.log('Canceled.');
             } else if (data) {
-                let data = {
+                dialogOption = {
                     option: {
                         type: DialogType.Info,
                         buttons: [],
@@ -73,7 +85,7 @@
                         detail: '앱이 다시 실행됩니다.',
                     }
                 }
-                window.api.request('dialog', data);
+                window.api.request('dialog', dialogOption);
             }
             window.api.removeResponse('restoreResponse');
         });

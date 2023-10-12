@@ -1,28 +1,37 @@
 <script>
-    import {onDestroy, onMount} from "svelte";
+    import {onMount} from "svelte";
     import {push} from "svelte-spa-router";
     import {DialogType} from "../../../scripts/util/enum";
-    // 기관 선택 시 안내팝업 한 번 더 노출
+
     let companyList = [];
     let selectedCompanySeq;
+
+    let dialogOption = {
+        option: {
+            type: 'DialogType.Info',
+            buttons: [],
+            defaultId: 0,
+            cancelId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        }
+    }
 
     /* 기관 선택 */
     onMount(() => {
         companyList = [];
         window.api.request('getCompanyList');
-    })
-
-    window.api.response('step2CompanyList', (data) => {
-        companyList = data
-    })
-    onDestroy(() => {
-        window.api.removeResponse('step2CompanyList');
+        window.api.response('step2CompanyList', (data) => {
+            companyList = data;
+            window.api.removeResponse('step2CompanyList');
+        })
     })
 
     function next() {
         if (!!selectedCompanySeq) {
-            let selectedCompanyName = companyList.filter(e => e.code === selectedCompanySeq)[0].name;
-            let data = {
+            let selectedCompanyName = companyList.filter(e => e.code === selectedCompanySeq)[0].name; // 선택된 기관명
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: ['OK', 'Cancel'],
@@ -31,10 +40,9 @@
                     title: '알림',
                     message: '',
                     detail: `기관은 변경할 수 없습니다.\n선택하신 '${selectedCompanyName}'(으)로 등록 하시겠습니까?`,
-                },
-                callbackId: 'step2'
+                }
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
             window.api.response('dialogCallback', (data) => {
                 // 확인버튼 클릭 시
                 if (data.buttonId === 0) {
@@ -42,7 +50,7 @@
                 } else window.api.removeResponse('dialogCallback');
             })
         } else {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -52,7 +60,7 @@
                     detail: '기관을 선택해주세요',
                 }
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
         }
     }
 

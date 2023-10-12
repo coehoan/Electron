@@ -3,10 +3,22 @@
     import {onDestroy, onMount} from "svelte";
     import Header from "../../lib/layout/Header.svelte";
     import {DialogType, MainTitle} from "../../../scripts/util/enum";
+    import {emailCheck} from "../../../scripts/util/common";
 
     let title = MainTitle.CompanyInfo;
     let companyInfo = [];
     let newAdminList =[];
+
+    let dialogOption = {
+        option: {
+            type: '',
+            buttons: [],
+            defaultId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        }
+    }
 
     onMount(() => {
         window.api.response('infoResponse', (data) => {
@@ -50,7 +62,7 @@
      * */
     function deleteAdmin (e) {
         if (companyInfo.length <= 1) {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -60,7 +72,7 @@
                     detail: '1명 이상의 담당자 정보가 필요합니다.',
                 }
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
         } else {
             window.api.response('adminResponse', (data) => {
                 if (data) {
@@ -73,34 +85,9 @@
         }
     }
 
-    /**
-     * 담당자 저장
-     * */
-    function saveAdmin() {
-        window.api.response('adminResponse', (data) => {
-            if (data === 'duplicated') {
-                let data = {
-                    option: {
-                        type: DialogType.Info,
-                        buttons: [],
-                        defaultId: 0,
-                        title: '알림',
-                        message: '',
-                        detail: '주담당자는 1명만 지정 가능합니다.',
-                    }
-                }
-                window.api.request('dialog', data);
-            } else if (data) {
-                newAdminList = [];
-                // 담당자 저장, 삭제 성공 후 목록 재조회
-                window.api.request('getCompanyInfo');
-            }
-            window.api.removeResponse('adminResponse');
-        })
-        if (newAdminList.every((e) => !Object.values(e).includes(''))) {
-            window.api.request('saveAdmin', newAdminList);
-        } else {
-            let data = {
+    function validCheck() {
+        if (!newAdminList.every((e) => !Object.values(e).includes(''))) {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -110,8 +97,54 @@
                     detail: '빈 값을 확인해주세요.',
                 }
             }
-            window.api.request('dialog', data);
-            window.api.removeResponse('adminResponse');
+            window.api.request('dialog', dialogOption);
+            return false;
+        }
+        for (let i = 0; i < newAdminList.length; i++) {
+            if (!emailCheck(newAdminList[i].email)) {
+                dialogOption = {
+                    option: {
+                        type: DialogType.Info,
+                        buttons: [],
+                        defaultId: 0,
+                        title: '알림',
+                        message: '',
+                        detail: '이메일 양식을 확인해주세요.',
+                    }
+                }
+                window.api.request('dialog', dialogOption);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 담당자 저장
+     * */
+    function saveAdmin() {
+        if (validCheck()) {
+            window.api.response('adminResponse', (data) => {
+                if (data === 'duplicated') {
+                    dialogOption = {
+                        option: {
+                            type: DialogType.Info,
+                            buttons: [],
+                            defaultId: 0,
+                            title: '알림',
+                            message: '',
+                            detail: '주담당자는 1명만 지정 가능합니다.',
+                        }
+                    }
+                    window.api.request('dialog', dialogOption);
+                } else if (data) {
+                    newAdminList = [];
+                    // 담당자 저장, 삭제 성공 후 목록 재조회
+                    window.api.request('getCompanyInfo');
+                }
+                window.api.removeResponse('adminResponse');
+            })
+            window.api.request('saveAdmin', newAdminList);
         }
     }
 
@@ -178,10 +211,10 @@
                             <input bind:value={list.email} style="width: 150px;" type="email"/>
                         </td>
                         <td>
-                            <input bind:value={list.tel} style="width: 150px;" />
+                            <input bind:value={list.tel} on:input={() => {list.tel = list.tel.replace(/[^0-9]/g,'')}} maxlength="11" style="width: 150px;" />
                         </td>
                         <td>
-                            <input bind:value={list.phone} style="width: 150px;" />
+                            <input bind:value={list.phone} on:input={() => {list.phone = list.phone.replace(/[^0-9]/g,'')}} maxlength="11" style="width: 150px;" />
                         </td>
                         <td>
                             <select bind:value={list.type} style="width: 150px">

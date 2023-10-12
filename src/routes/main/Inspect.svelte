@@ -24,6 +24,17 @@
     let isModalShow = false;
     let selectedSeq = 0;
 
+    let dialogOption = {
+        option: {
+            type: DialogType.Info,
+            buttons: [],
+            defaultId: 0,
+            title: '알림',
+            message: '',
+            detail: '제출완료',
+        }
+    }
+
     onMount(() => {
         window.api.response('selfResponse', (data) => {
             questionList = data;
@@ -46,7 +57,7 @@
                 if (data === 'canceled') {
                     console.log('Canceled.');
                 } else if (data) {
-                    let data = {
+                    dialogOption = {
                         option: {
                             type: DialogType.Info,
                             buttons: [],
@@ -56,13 +67,13 @@
                             detail: '제출완료',
                         }
                     }
-                    window.api.request('dialog', data);
+                    window.api.request('dialog', dialogOption);
                     $completeYn = Yn.Y; // 현장실사 완료
                 }
                 window.api.removeResponse('fileResponse');
             })
         } else {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -72,7 +83,7 @@
                     detail: '답변이 완료되지 않았습니다.',
                 }
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
         }
     }
 

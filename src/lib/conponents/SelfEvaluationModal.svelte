@@ -9,6 +9,18 @@
     let checkedAnswer = 0;
     let isCommentShow = false;
 
+    let dialogOption = {
+        option: {
+            type:'',
+            buttons: [],
+            defaultId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        },
+        callbackId: ''
+    }
+
     export let isModalShow = false;
     export let questionList = [];
     export let selectedSeq = 0;
@@ -114,7 +126,7 @@
      * */
     function moveToNext() {
         if (selectedSeq === questionList.length) {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -125,7 +137,7 @@
                 },
                 callbackId: 'selfMoveToNext'
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
             window.api.response('dialogCallback', (data) => {
                 if (data.callbackId === 'selfMoveToNext') {
                     window.api.request('getQuestionInfo'); // question 정보 다시 받아오기

@@ -1,5 +1,7 @@
 <script>
     import {push} from "svelte-spa-router";
+    import {DialogType} from "../../../scripts/util/enum";
+    import {emailCheck} from "../../../scripts/util/common";
 
     let data = {
         name: '',
@@ -9,6 +11,17 @@
         phone: ''
     }
 
+    let dialogOption = {
+        option: {
+            type: '',
+            buttons: [],
+            defaultId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        }
+    }
+
     /* 주 담당자 정보 입력 */
     window.api.response('step3Response', (data) => {
         if (data) {
@@ -16,8 +29,42 @@
         }
     })
 
+    function validCheck() {
+        if (!Object.values(data).every(e => e !== '')) {
+            dialogOption = {
+                option: {
+                    type: DialogType.Info,
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '빈 값을 확인해주세요.',
+                }
+            }
+            window.api.request('dialog', dialogOption);
+            return false;
+        }
+        if (!emailCheck(data.email)) {
+            dialogOption = {
+                option: {
+                    type: DialogType.Info,
+                    buttons: [],
+                    defaultId: 0,
+                    title: '알림',
+                    message: '',
+                    detail: '이메일 양식을 확인해주세요.',
+                }
+            }
+            window.api.request('dialog', dialogOption);
+            return false;
+        }
+        return true;
+    }
+
     function submit() {
-        window.api.request('setAdminInfo', data);
+        if (validCheck()) {
+            window.api.request('setAdminInfo', data);
+        }
     }
 </script>
 
@@ -30,9 +77,11 @@
     <span>메일 </span>
     <input type="email" bind:value={data.email} style="width: 200px;"/> <br>
     <span>연락처 </span>
-    <input type="text" bind:value={data.tel} style="width: 200px;"/> <br>
+    <input type="text" bind:value={data.tel} on:input={() => {data.tel = data.tel.replace(/[^0-9]/g,'')}} maxlength="11" style="width: 200px;"/>
+    <span style="font-size: 13px; color: #999999;">숫자만 입력해주세요</span> <br>
     <span>휴대폰 </span>
-    <input type="text" bind:value={data.phone} style="width: 200px;"/> <br>
+    <input type="text" bind:value={data.phone} on:input={() => {data.phone = data.phone.replace(/[^0-9]/g,'')}} maxlength="11" style="width: 200px;"/>
+    <span style="font-size: 13px; color: #999999;">숫자만 입력해주세요</span> <br>
     <button on:click={submit}>저장</button>
 </main>
 

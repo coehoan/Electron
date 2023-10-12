@@ -12,6 +12,18 @@
     let inspectCheckedAnswer = 0;
     let isCommentShow = false;
 
+    let dialogOption = {
+        option: {
+            type: DialogType.Info,
+            buttons: [],
+            defaultId: 0,
+            title: '알림',
+            message: '',
+            detail: '마지막 문항입니다.',
+        },
+        callbackId: 'finalMoveToNext'
+    }
+
     export let isModalShow = false;
     export let questionList = [];
     export let selectedSeq = 0;
@@ -49,7 +61,7 @@
      * */
     function next() {
         if (selectedSeq === questionList.length) {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -60,7 +72,7 @@
                 },
                 callbackId: 'finalMoveToNext'
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
             window.api.response('dialogCallback', (data) => {
                 if (data.callbackId === 'finalMoveToNext') {
                     isModalShow = false;

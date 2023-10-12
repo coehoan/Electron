@@ -20,6 +20,17 @@
     let isModalShow = false;
     let selectedSeq = 0;
 
+    let dialogOption = {
+        option: {
+            type: '',
+            buttons: [],
+            defaultId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        }
+    };
+
     onMount(() => {
         window.api.response('selfResponse', (data) => {
             questionList = data;
@@ -42,7 +53,7 @@
                 if (data === 'canceled') {
                     console.log('Canceled.');
                 } else if (data) {
-                    let data = {
+                    dialogOption = {
                         option: {
                             type: DialogType.Info,
                             buttons: [],
@@ -52,12 +63,12 @@
                             detail: '제출 완료',
                         }
                     };
-                    window.api.request('dialog', data);
+                    window.api.request('dialog', dialogOption);
                 }
                 window.api.removeResponse('fileResponse');
             })
         } else {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -67,7 +78,7 @@
                     detail: '답변이 완료되지 않았습니다.',
                 }
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
         }
     }
 

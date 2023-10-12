@@ -20,6 +20,18 @@
         inspect_memo: ''
     };
 
+    let dialogOption = {
+        option: {
+            type: '',
+            buttons: [],
+            defaultId: 0,
+            title: '',
+            message: '',
+            detail: '',
+        },
+        callbackId: ''
+    }
+
     export let isModalShow = false;
     export let questionList = [];
     export let selectedSeq = 0;
@@ -111,7 +123,7 @@
      * */
     function moveToNext() {
         if (selectedSeq === questionList.length) {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -122,7 +134,7 @@
                 },
                 callbackId: 'inspectMoveToNext'
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
             window.api.response('dialogCallback', (data) => {
                 if (data.callbackId === 'inspectMoveToNext') {
                     isModalShow = false;
@@ -253,7 +265,7 @@
      * */
     function deleteInspectFile() {
         if (!selectedFileName) {
-            let data = {
+            dialogOption = {
                 option: {
                     type: DialogType.Info,
                     buttons: [],
@@ -263,7 +275,7 @@
                     detail: '파일을 선택해주세요.',
                 }
             }
-            window.api.request('dialog', data);
+            window.api.request('dialog', dialogOption);
         } else {
             window.api.request('deleteFile', {
                 seq: selectedSeq,
