@@ -395,9 +395,108 @@ module.exports = {
                 // 백업 파일 압축 해제
                 zip.extractAllToAsync(tmpFolderPath, true, true, () => {
                     // restore-event 이벤트 수동으로 발생
-                    app.emit('restore-event');
-                    event.sender.send('restoreResponse', true);
-                    app.quit();
+                    // app.emit('restore-event');
+                    dialog.showMessageBox(mainWindow, {
+                        type: 'info',
+                        buttons: [],
+                        defaultId: 0,
+                        title: '알림',
+                        message: '',
+                        detail: '앱이 다시 실행됩니다.',
+                    }).then (async (result) => {
+                        if (result.response === 0) {
+                            try {
+                                let appFolderPath = path.join(__dirname, '..', '../app'); // 기존 resources 폴더 경로
+                                let tmpFolderPath = path.join(__dirname, '..', '../tmp'); // tmp resources 폴더 경로
+                                let tmpNodeModulePath = path.join(__dirname, '..', '../tmp/node_modules') // tmp 폴더 내 node_modules 경로
+                                let dbPath = path.join(__dirname, '../db');
+                                let dbFilePath = path.join(dbPath, '/evaluation.db');
+                                let tmpDBPath = path.join(__dirname, '..', '../tmp/db');
+                                let tmpDBFilePath = path.join(tmpDBPath, '/evaluation.db');
+                                let db = new sqlite3.Database(dbFilePath);
+                                let db2 = new sqlite3.Database(tmpDBFilePath);
+
+                                // 1. evaluation.db 데이터 변경\
+
+                                // 기존 DB 초기화
+                                db.serialize(() => {
+                                    db.run(`DELETE FROM admin`);
+                                    db.run(`DELETE FROM basic_info`);
+                                    db.run(`DELETE FROM company`);
+                                    db.run(`DELETE FROM questions`);
+
+                                    // db2 데이터를 db에 insert
+                                    db.serialize(() => {
+                                        db2.all(`SELECT * FROM admin`, (err, rows) => {
+                                            rows.forEach((e) => {
+                                                let query = `
+                                                    INSERT INTO admin (id, basic_info_seq, company_seq, name, roles, email, tel, phone, type)
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                                                let values = Object.values(e);
+                                                db.run(query, values)
+                                            })
+                                        });
+                                        db2.all(`SELECT * FROM basic_info`, (err, rows) => {
+                                            rows.forEach((e) => {
+                                                let query = `
+                                                    INSERT INTO basic_info (id, company_seq)
+                                                    VALUES (?, ?)`
+                                                let values = Object.values(e);
+                                                db.run(query, values)
+                                            })
+                                        });
+                                        db2.all(`SELECT * FROM company`, (err, rows) => {
+                                            rows.forEach((e) => {
+                                                let query = `
+                                                    INSERT INTO company(id, code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn, year)
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                                                let values = Object.values(e);
+                                                db.run(query, values)
+                                            })
+                                        });
+                                        db2.all(`SELECT * FROM questions`, (err, rows) => {
+                                            rows.forEach((e) => {
+                                                let query = `
+                                                    INSERT INTO questions (id, num, type, point, question, answer1, anspoint1, answer2, anspoint2, answer3, anspoint3, answer4, anspoint4, answer5, anspoint5, self_result, self_score, inspect_result, inspect_score, stalenessYn, evidence, comment, self_memo, inspect_memo)
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                                                let values = Object.values(e);
+                                                db.run(query, values)
+                                            })
+                                        });
+                                    })
+                                })
+                                // 2. electron, public, script 폴더 변경
+                                // appFolderPath의 node_modules, db 폴더를 제외한 나머지 파일 삭제
+
+                                fs.readdirSync(appFolderPath).forEach((e) => {
+                                    if (e !== 'node_modules' || e !== 'db') {
+                                        console.log('1. app folder list:: ', e);
+                                        fs.rmSync(`${appFolderPath}/${e}`, {recursive: true});
+                                    }
+                                })
+                                // tmp 폴더의 node_modules, db 폴더 삭제
+                                fs.rmSync(tmpNodeModulePath, {recursive: true});
+                                console.log('2. tmp node folder remove');
+                                db2.close(async () => {
+                                    await fs.rmSync(tmpDBPath, {recursive: true});
+                                    console.log('3. tmp db folder remove');
+
+                                    // tmp -> app 폴더 복사
+                                    fsExtra.copySync(tmpFolderPath, appFolderPath, {recursive: true, overwrite: true})
+                                    console.log('4. copy tmp folder to app folder');
+                                    // tmp 폴더 삭제
+                                    fs.rmSync(tmpFolderPath, {recursive: true});
+                                    console.log('5. remove tmp folder');
+
+                                    // 앱 재실행
+                                    app.relaunch();
+                                    app.quit();
+                                });
+                            } catch (e) {
+                                console.log(e)
+                            }
+                        }
+                    })
                 });
             } else event.sender.send('restoreResponse', 'canceled');
         })

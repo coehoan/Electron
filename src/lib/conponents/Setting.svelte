@@ -71,7 +71,7 @@
      * */
     function restore() {
         window.api.request('restore');
-        window.api.response('restoreResponse', (data) => {
+        /*window.api.response('restoreResponse', (data) => {
             if (data === 'canceled') {
                 console.log('Canceled.');
             } else if (data) {
@@ -88,7 +88,7 @@
                 window.api.request('dialog', dialogOption);
             }
             window.api.removeResponse('restoreResponse');
-        });
+        });*/
     }
 </script>
 
