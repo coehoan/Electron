@@ -467,10 +467,9 @@ module.exports = {
                                 })
                                 // 2. electron, public, script 폴더 변경
                                 // appFolderPath의 node_modules, db 폴더를 제외한 나머지 파일 삭제
-                                fs.readdirSync(appFolderPath).forEach((e) => {
-                                    if (!(e === 'node_modules' || e === 'db')) {
-                                        fs.rmSync(`${appFolderPath}/${e}`, {recursive: true});
-                                    }
+                                let folderList = fs.readdirSync(appFolderPath).filter((e) => !(e === 'db' || e === 'node_modules'));
+                                folderList.forEach(async (e) => {
+                                    await fs.rmSync(`${appFolderPath}/${e}`, {recursive: true});
                                 })
                                 // tmp 폴더의 node_modules, db 폴더 삭제
                                 fs.rmSync(tmpNodeModulePath, {recursive: true});

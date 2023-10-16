@@ -1,4 +1,4 @@
-const {dialog, ipcMain} = require("electron");
+const {dialog, ipcMain, app} = require("electron");
 const fs = require('fs');
 const sqlite3 = require('sqlite3');
 const {mainWindow} = require('../electron/main');
@@ -163,7 +163,9 @@ module.exports = {
                             `);
                         });
                     })
-                    event.sender.send('step1Response', true)
+                    setTimeout(() => {
+                        event.sender.send('step1Response', true)
+                    }, 500)
                 } else {
                     event.sender.send('step1Response', 'canceled')
                 }
