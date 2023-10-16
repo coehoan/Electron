@@ -416,7 +416,7 @@ module.exports = {
                                 let db = new sqlite3.Database(dbFilePath);
                                 let db2 = new sqlite3.Database(tmpDBFilePath);
 
-                                // 1. evaluation.db 데이터 변경\
+                                // 1. evaluation.db 데이터 변경
 
                                 // 기존 DB 초기화
                                 db.serialize(() => {
@@ -467,26 +467,20 @@ module.exports = {
                                 })
                                 // 2. electron, public, script 폴더 변경
                                 // appFolderPath의 node_modules, db 폴더를 제외한 나머지 파일 삭제
-
                                 fs.readdirSync(appFolderPath).forEach((e) => {
-                                    if (e !== 'node_modules' || e !== 'db') {
-                                        console.log('1. app folder list:: ', e);
+                                    if (!(e === 'node_modules' || e === 'db')) {
                                         fs.rmSync(`${appFolderPath}/${e}`, {recursive: true});
                                     }
                                 })
                                 // tmp 폴더의 node_modules, db 폴더 삭제
                                 fs.rmSync(tmpNodeModulePath, {recursive: true});
-                                console.log('2. tmp node folder remove');
                                 db2.close(async () => {
                                     await fs.rmSync(tmpDBPath, {recursive: true});
-                                    console.log('3. tmp db folder remove');
 
                                     // tmp -> app 폴더 복사
                                     fsExtra.copySync(tmpFolderPath, appFolderPath, {recursive: true, overwrite: true})
-                                    console.log('4. copy tmp folder to app folder');
                                     // tmp 폴더 삭제
                                     fs.rmSync(tmpFolderPath, {recursive: true});
-                                    console.log('5. remove tmp folder');
 
                                     // 앱 재실행
                                     app.relaunch();

@@ -1,11 +1,8 @@
-const {app, BrowserWindow, ipcMain, dialog} = require('electron');
+const {app, BrowserWindow} = require('electron');
 const path = require('path');
 const serve = require('electron-serve');
 const loadURL = serve({directory: 'public'});
-const fs = require('fs');
-const fsExtra = require('fs-extra');
 require('./module');
-const sqlite3 = require("sqlite3");
 
 let mainWindow;
 
