@@ -1,5 +1,5 @@
 <script>
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {push} from "svelte-spa-router";
     import {DialogType} from "../../../scripts/util/enum";
 
@@ -8,7 +8,7 @@
 
     let dialogOption = {
         option: {
-            type: 'DialogType.Info',
+            type: DialogType.Info,
             buttons: [],
             defaultId: 0,
             cancelId: 0,
@@ -26,6 +26,12 @@
             companyList = data;
             window.api.removeResponse('step2CompanyList');
         })
+    })
+
+    onDestroy(() => {
+        window.api.removeResponse('dialogCallback');
+        window.api.removeResponse('step2CompanyList');
+        window.api.removeResponse('step2Response');
     })
 
     function next() {

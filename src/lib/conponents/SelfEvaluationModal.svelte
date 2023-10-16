@@ -46,6 +46,7 @@
         document.removeEventListener('keyup', keyboardEvent);
         window.api.removeResponse('evalSaveResponse');
         window.api.removeResponse('selfResponse');
+        window.api.removeResponse('dialogCallback');
     })
 
     document.addEventListener('keyup', keyboardEvent)

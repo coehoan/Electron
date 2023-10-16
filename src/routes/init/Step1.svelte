@@ -1,5 +1,10 @@
 <script>
     import {push} from "svelte-spa-router";
+    import {onDestroy} from "svelte";
+
+    onDestroy(() => {
+        window.api.removeResponse('step1Response');
+    })
 
     /* 평가지표 파일을 불러온 후 DB 저장 */
     function fileUpload() {
@@ -12,7 +17,6 @@
             } else {
                 console.log('Error occurred');
             }
-            window.api.removeResponse('step1Response');
         })
     }
 </script>

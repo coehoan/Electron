@@ -1,6 +1,6 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {
         companyCode,
         companyName,
@@ -54,6 +54,13 @@
             window.api.removeResponse('companyResultResponse');
         })
         window.api.request('getFinalResult', $companySeq);
+    })
+
+    onDestroy(() => {
+        window.api.removeResponse('selfResponse')
+        window.api.removeResponse('companyResultResponse')
+        window.api.removeResponse('getFinalFileResponse')
+        window.api.removeResponse('mainResponse')
     })
 
     /**

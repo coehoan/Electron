@@ -22,6 +22,8 @@
 
     onDestroy(() => {
         window.api.removeResponse('step1Response');
+        window.api.removeResponse('backUpResponse');
+        window.api.removeResponse('restoreResponse');
     })
 
     /**

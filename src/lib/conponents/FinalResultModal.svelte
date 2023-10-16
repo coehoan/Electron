@@ -40,6 +40,8 @@
     onDestroy(() => {
         // 리스너 삭제
         document.removeEventListener('keyup', keyboardEvent);
+        window.api.removeResponse('fileListResponse');
+        window.api.removeResponse('dialogCallback');
     })
 
     document.addEventListener('keyup', keyboardEvent)

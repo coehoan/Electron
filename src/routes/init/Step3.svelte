@@ -2,6 +2,7 @@
     import {push} from "svelte-spa-router";
     import {DialogType} from "../../../scripts/util/enum";
     import {emailCheck} from "../../../scripts/util/common";
+    import {onDestroy} from "svelte";
 
     let data = {
         name: '',
@@ -22,11 +23,16 @@
         }
     }
 
+    onDestroy(() => {
+        window.api.removeResponse('step3Response')
+    })
+
     /* 주 담당자 정보 입력 */
     window.api.response('step3Response', (data) => {
         if (data) {
             push('/main');
         }
+        window.api.removeResponse('step3Response');
     })
 
     function validCheck() {

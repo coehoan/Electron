@@ -52,7 +52,10 @@
         // 리스너 삭제
         document.removeEventListener('keyup', keyboardEvent);
         window.api.removeResponse('inspectSaveResponse');
+        window.api.removeResponse('dialogCallback');
         window.api.removeResponse('selfResponse');
+        window.api.removeResponse('fileListResponse');
+        window.api.removeResponse('inspectSaveFileResponse');
     })
 
     document.addEventListener('keyup', keyboardEvent)

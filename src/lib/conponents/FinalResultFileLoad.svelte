@@ -1,5 +1,5 @@
 <script>
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {
         companyCode,
         companyName,
@@ -19,6 +19,13 @@
 
     onMount(() => {
         getOlderData();
+    })
+
+    onDestroy(() => {
+        window.api.removeResponse('getOlderFileListResponse')
+        window.api.removeResponse('olderFileDataResponse')
+        window.api.removeResponse('selfResponse')
+        window.api.removeResponse('mainResponse')
     })
 
     /**

@@ -44,6 +44,7 @@
 
     onDestroy(() => {
         window.api.removeResponse('selfResponse');
+        window.api.removeResponse('fileResponse');
     })
 
     /**
