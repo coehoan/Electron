@@ -1,7 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 let requestChannels = [
-    'existFile', 'fileUpload', 'getCompanyList', 'setBasicInfo', 'setAdminInfo', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo',
+    'existFile', 'fileUpload', 'saveInitData', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo',
     'importFile', 'exportSelfFile', 'exportInspectFile', 'saveSelfAnswer', 'saveInspectAnswer', 'saveInspectFile', 'getFileList', 'deleteFile', 'getFinalResult', 'getFinalFile',
     'getOlderFileList', 'getOlderFileData', 'backUp', 'restore', 'dialog'];
 let responseChannels = [

@@ -3,13 +3,17 @@
     import {DialogType} from "../../../scripts/util/enum";
     import {emailCheck} from "../../../scripts/util/common";
     import {onDestroy} from "svelte";
+    import {initData} from "../../../scripts/store/store";
 
     let data = {
+        basic_info_seq: 1,
+        company_seq: 0,
         name: '',
         roles: '',
         email: '',
         tel: '',
-        phone: ''
+        phone: '',
+        type: '주담당자'
     }
 
     let dialogOption = {
@@ -25,14 +29,6 @@
 
     onDestroy(() => {
         window.api.removeResponse('step3Response')
-    })
-
-    /* 주 담당자 정보 입력 */
-    window.api.response('step3Response', (data) => {
-        if (data) {
-            push('/main');
-        }
-        window.api.removeResponse('step3Response');
     })
 
     function validCheck() {
@@ -69,7 +65,15 @@
 
     function submit() {
         if (validCheck()) {
-            window.api.request('setAdminInfo', data);
+            data.company_seq = $initData.basic_info.company_seq;
+            $initData.admin = data;
+            window.api.response('step3Response', (data) => {
+                if (data) {
+                    push('/main');
+                }
+                window.api.removeResponse('step3Response');
+            })
+            window.api.request('saveInitData', $initData);
         }
     }
 </script>
