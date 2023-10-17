@@ -128,7 +128,8 @@
      * */
     function getFileList() {
         let path = `../static/files/inspect/${$companyYear}/`;
-        window.api.request('getFileList', {seq: selectedSeq, path: path});
+        let questionNum = questionList[selectedSeq - 1].num;
+        window.api.request('getFileList', {questionNum: questionNum, path: path});
         window.api.response('fileListResponse', (data) => {
             fileList = !!data ? data : [];
             window.api.removeResponse('fileListResponse');

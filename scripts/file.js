@@ -162,11 +162,11 @@ module.exports = {
                 if (!fs.existsSync(yearPath)) {
                     fs.mkdirSync(yearPath)
                 }
-                if (!fs.existsSync(savePath + args.selectedSeq)) {
-                    fs.mkdirSync(savePath + args.selectedSeq);
+                if (!fs.existsSync(savePath + args.questionNum)) {
+                    fs.mkdirSync(savePath + args.questionNum);
                 }
 
-                fs.copyFile(filePath, `${savePath}${args.selectedSeq}\\${fileName}`, (err) => {
+                fs.copyFile(filePath, `${savePath}${args.questionNum}\\${fileName}`, (err) => {
                     if (err) {
                         console.log('Inspect file upload error:: ', err.message);
                     } else {
@@ -184,7 +184,7 @@ module.exports = {
     deleteFile: ipcMain.on('deleteFile', (event, args) => {
         let filePath = path.join(__dirname, '../static/files/inspect/'); // 저장 경로
         let year = new Date().getFullYear(); // 현재년도
-        fs.unlink(`${filePath}\\${year}\\${args.seq}\\${args.fileName}`, (err) => {
+        fs.unlink(`${filePath}\\${year}\\${args.questionNum}\\${args.fileName}`, (err) => {
             if (err) {
                 console.log('File delete error:: ', err.message);
                 event.sender.send('deleteFileResponse', false);
@@ -196,7 +196,7 @@ module.exports = {
      * */
     getFileList: ipcMain.on('getFileList', (event, args) => {
         let filePath = path.join(__dirname, args.path); // 저장 경로
-        fs.readdir(filePath + args.seq, (err, files) => {
+        fs.readdir(filePath + args.questionNum, (err, files) => {
             event.sender.send('fileListResponse', files);
         })
     }),
@@ -358,7 +358,6 @@ module.exports = {
                 } else {
                     event.sender.send('getFinalFileResponse', 'canceled');
                 }
-                db.close();
             });
         } catch (e) {
             db.close();

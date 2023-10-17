@@ -238,8 +238,9 @@
      * 현장실사 파일 첨부
      * */
     function saveInspectFile() {
+        let questionNum = questionList[selectedSeq - 1].num;
         // TODO: 동일 파일명 처리
-        window.api.request('saveInspectFile', {selectedSeq: selectedSeq, year: $companyYear});
+        window.api.request('saveInspectFile', {questionNum: questionNum, year: $companyYear});
         window.api.response('inspectSaveFileResponse', (data) => {
             if (data === 'canceled') {
                 console.log('Canceled.')
@@ -280,8 +281,9 @@
             }
             window.api.request('dialog', dialogOption);
         } else {
+            let questionNum = questionList[selectedSeq - 1].num;
             window.api.request('deleteFile', {
-                seq: selectedSeq,
+                questionNum: questionNum,
                 fileName: selectedFileName
             });
             window.api.response('deleteFileResponse', (data) => {
