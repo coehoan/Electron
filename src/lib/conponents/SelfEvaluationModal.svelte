@@ -39,7 +39,7 @@
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
             if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
                 // 객관식 단일항목
-                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
             } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
                 // 객관식 다중항목
                 // 체크된 답변 변경
@@ -93,7 +93,7 @@
             selectedSeq = selectedSeq - 1;
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
             if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
             } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
                 // 객관식 다중항목
                 // 체크된 답변 변경
@@ -216,7 +216,7 @@
             questionList = data; // questionList 업데이트
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
             if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
             } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
                 // 객관식 다중항목
                 // 체크된 답변 변경
@@ -242,7 +242,7 @@
      * */
     function selectQuestion() {
         if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-            singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
         } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
             // 객관식 다중항목
             // 체크된 답변 변경
