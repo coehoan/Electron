@@ -461,26 +461,29 @@
                             {/each}
                         {:else if questionList[selectedSeq - 1].type === QuestionType.MultipleChoice}
                             <!-- 객관식 다중체크 -->
-                            <div style="display: flex">
-                                <div style="width: 90%">
-                                    {#each answerList as list, i}
-                                        {#if list[Object.keys(list)[0]] !== ''}
-                                            <div style="display: flex; justify-content: space-between">
-                                                <div>
-                                                    <input type="checkbox" name="checkbox{i}" value="{i + 1}" disabled={$completeYn === Yn.Y}
-                                                           on:change={() => {multiChoiceCheck(i + 1)}}
-                                                           checked={inspectMultiChoiceAnswer.includes((i + 1).toString())}/>
-                                                    <span>{list[`answer${i + 1}`]}</span>
-                                                    <span>({list[`anspoint${i + 1}`]}점)</span>
+                            {#key answerList}
+                                <div style="display: flex">
+                                    <div style="width: 90%">
+                                        {#each answerList as list, i}
+                                            {#if list[Object.keys(list)[0]] !== ''}
+                                                <div style="display: flex; justify-content: space-between">
+                                                    <div>
+                                                        <input type="checkbox" name="checkbox{i}" value="{i + 1}"
+                                                               disabled={$completeYn === Yn.Y}
+                                                               on:change={() => {multiChoiceCheck(i + 1)}}
+                                                               checked={inspectMultiChoiceAnswer.includes((i + 1).toString())}/>
+                                                        <span>{list[`answer${i + 1}`]}</span>
+                                                        <span>({list[`anspoint${i + 1}`]}점)</span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        {/if}
-                                    {/each}
+                                            {/if}
+                                        {/each}
+                                    </div>
+                                    <div style="width: 10%; display: flex; justify-content: end; align-items: center">
+                                        <span>{inspectMultiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
+                                    </div>
                                 </div>
-                                <div style="width: 10%; display: flex; justify-content: end; align-items: center">
-                                    <span>{inspectMultiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
-                                </div>
-                            </div>
+                            {/key}
                         {:else}
                             <!-- 주관식 -->
                             {#each answerList as list, i}

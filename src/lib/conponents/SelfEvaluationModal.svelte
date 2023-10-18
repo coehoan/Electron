@@ -34,25 +34,9 @@
     let subAnswerElements = [];
 
     onMount(() => {
-        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
-            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-                // 객관식 단일항목
-                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
-            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
-                // 객관식 다중항목
-                // 체크된 답변 변경
-                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
-                    ? [] // 빈 배열
-                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
-                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
-                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
-                multiChoiceCheck();
-            } else {
-                // 주관식
-                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
-            }
+            updateAnswer();
         }
     })
 
@@ -91,21 +75,7 @@
     function prev() {
         if (selectedSeq !== 1) {
             selectedSeq = selectedSeq - 1;
-            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
-            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
-                // 객관식 다중항목
-                // 체크된 답변 변경
-                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
-                    ? [] // 빈 배열
-                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
-                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
-                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
-                multiChoiceCheck();
-            } else {
-                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
-            }
+            updateAnswer();
         }
     }
 
@@ -223,8 +193,8 @@
                 multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
                     ? [] // 빈 배열
                     : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
-                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
-                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                        ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                        : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
                 multiChoiceCheck();
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
@@ -241,7 +211,18 @@
      * 상단 셀렉트 박스로 문항 선택 시 해당 문항으로 이동
      * */
     function selectQuestion() {
+        updateAnswer();
+    }
+
+    function popUpComment() {
+        isCommentShow = true;
+    }
+
+
+    function updateAnswer() {
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+            // 객관식 단일항목
             singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
         } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
             // 객관식 다중항목
@@ -249,16 +230,13 @@
             multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
                 ? [] // 빈 배열
                 : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
-                ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
-                : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
             multiChoiceCheck();
         } else {
-            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
+            // 주관식
+            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
         }
-    }
-
-    function popUpComment() {
-        isCommentShow = true;
     }
 
     function keyboardEvent(e) {
@@ -362,26 +340,29 @@
                     {/each}
                 {:else if questionList[selectedSeq - 1].type === QuestionType.MultipleChoice}
                     <!-- 객관식 다중체크 -->
-                    <div style="display: flex">
-                        <div style="width: 90%">
-                            {#each answerList as list, i}
-                                {#if list[Object.keys(list)[0]] !== ''}
-                                    <div style="display: flex; justify-content: space-between">
-                                        <div>
-                                            <input type="checkbox" name="checkbox{i}" value="{i + 1}" disabled={$completeYn === Yn.Y}
-                                                   on:change={() => {multiChoiceCheck(i + 1)}}
-                                                   checked={multiChoiceAnswer.includes((i + 1).toString())}/>
-                                            <span>{list[`answer${i + 1}`]}</span>
-                                            <span>({list[`anspoint${i + 1}`]}점)</span>
+                    {#key answerList}
+                        <div style="display: flex">
+                            <div style="width: 90%">
+                                {#each answerList as list, i}
+                                    {#if list[Object.keys(list)[0]] !== ''}
+                                        <div style="display: flex; justify-content: space-between">
+                                            <div>
+                                                <input type="checkbox" name="checkbox{i}" value="{i + 1}"
+                                                       disabled={$completeYn === Yn.Y}
+                                                       on:change={() => {multiChoiceCheck(i + 1)}}
+                                                       checked={multiChoiceAnswer.includes((i + 1).toString())}/>
+                                                <span>{list[`answer${i + 1}`]}</span>
+                                                <span>({list[`anspoint${i + 1}`]}점)</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                {/if}
-                            {/each}
+                                    {/if}
+                                {/each}
+                            </div>
+                            <div style="width: 10%; display: flex; justify-content: end; align-items: center">
+                                <span>{multiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
+                            </div>
                         </div>
-                        <div style="width: 10%; display: flex; justify-content: end; align-items: center">
-                            <span>{multiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
-                        </div>
-                    </div>
+                    {/key}
                 {:else}
                     <!-- 주관식 -->
                     {#each answerList as list, i}
