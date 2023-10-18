@@ -18,8 +18,7 @@
         if ($initData.status !== 'reimport') {
             if (!!$isExist && $isExist) {
                 push('/main');
-            } else {
-                $initData.status = 'init';
+            } else if ($initData.status === 'init'){
                 push('/step1');
             }
         }

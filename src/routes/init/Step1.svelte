@@ -8,11 +8,11 @@
     })
 
     function fileUpload() {
-        window.api.request('fileUpload');
         window.api.response('step1Response', (data) => {
             if (data === 'canceled') {
                 console.log('Canceled.');
             } else if (data) {
+                $initData.status = 'inProgress'
                 $initData.questions = data.questions;
                 $initData.company = data.company;
                 push('/step2');
@@ -21,6 +21,7 @@
             }
             window.api.removeResponse('step1Response');
         })
+        window.api.request('fileUpload');
     }
 </script>
 

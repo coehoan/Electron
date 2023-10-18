@@ -8,7 +8,7 @@ export let completeYn = writable('N'); // 현장실사 완료 여부
 export let isExist = writable(); // evaluation.db 파일 존재 유무
 export let isFinalListShow = writable(false); // 최종 평가 결과 리스트 노출 여부
 export let initData = writable({
-    status: 'init', // 초기화 상태값 ['init', 'reimport']
+    status: 'init', // 초기화 상태값 ['init', 'reimport', 'inProgress']
     questions: [],
     company: {},
     basic_info: {},
