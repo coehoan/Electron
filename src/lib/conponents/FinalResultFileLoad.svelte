@@ -54,12 +54,11 @@
             window.api.response('olderFileDataResponse', (data) => {
                 // 존재하면 데이터 업데이트
                 if (data) {
-                    window.api.request('getQuestionInfo');
                     window.api.response('selfResponse', (data) => {
                         questionList = data;
                         window.api.removeResponse('selfResponse');
                     })
-                    isFileLoadShow = false; // 팝업창 닫기
+                    window.api.request('getQuestionInfo');
                     $isFinalListShow = true; // 결과 리스트 노출
                     // 기관정보 store값 업데이트
                     window.api.response('mainResponse', (data) => {
@@ -70,12 +69,13 @@
                         $completeYn = Yn.Y; // 현장실사 완료
 
                         window.api.removeResponse('mainResponse');
+                        isFileLoadShow = false; // 팝업창 닫기
                     })
                     window.api.request('getMainInfo');
                 }
             })
         }
-        document.getElementsByTagName('body')[0].style.overflow = 'auto'
+        document.getElementsByTagName('body')[0].style.overflow = 'auto';
     }
 </script>
 
