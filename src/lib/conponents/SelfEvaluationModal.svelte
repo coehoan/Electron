@@ -34,6 +34,7 @@
     let subAnswerElements = [];
 
     onMount(() => {
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
             updateAnswer();
@@ -73,6 +74,7 @@
      * 이전문제
      * */
     function prev() {
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         if (selectedSeq !== 1) {
             selectedSeq = selectedSeq - 1;
             updateAnswer();
@@ -211,6 +213,7 @@
      * 상단 셀렉트 박스로 문항 선택 시 해당 문항으로 이동
      * */
     function selectQuestion() {
+        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         updateAnswer();
     }
 
@@ -220,7 +223,6 @@
 
 
     function updateAnswer() {
-        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
             // 객관식 단일항목
             singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경

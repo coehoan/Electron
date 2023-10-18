@@ -70,6 +70,14 @@ module.exports = {
                 fs.writeFileSync(dbFilePath, ''); // evaluation.db 빈 파일 생성
             }
             db = new sqlite3.Database(dbFilePath); // evaluation.db 접속
+
+            // 환경설정 - 평가데이터 가져오기로 접근했을 때 기존 DB 초기화
+            if (args.status === 'reimport') {
+                db.run(`DELETE FROM admin`);
+                db.run(`DELETE FROM basic_info`);
+                db.run(`DELETE FROM company`);
+                db.run(`DELETE FROM questions`);
+            }
             db.serialize((err, event) => { // 쿼리 실행
                 db.run(`
                 CREATE TABLE IF NOT EXISTS questions (

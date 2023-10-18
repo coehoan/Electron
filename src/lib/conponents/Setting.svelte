@@ -2,6 +2,7 @@
     import {push} from "svelte-spa-router";
     import {onDestroy} from "svelte";
     import {DialogType} from "../../../scripts/util/enum";
+    import {initData, isFinalListShow} from "../../../scripts/store/store";
 
     export let isSettingShow = true;
 
@@ -35,6 +36,11 @@
             if (data === 'canceled') {
                 console.log('Canceled');
             } else if (data) {
+                $initData.status = 'reimport'
+                $initData.questions = data.questions;
+                $initData.company = data.company;
+                $isFinalListShow = false;
+                document.getElementsByTagName('body')[0].style.overflow = 'auto'; // 스크롤 방지 해제
                 push('/step2');
             } else {
                 console.log('Error occurred');

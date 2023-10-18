@@ -3,9 +3,10 @@
     import {push} from 'svelte-spa-router'
     import routes from "./routes";
     import {afterUpdate, onMount} from "svelte";
-    import {isExist} from "../scripts/store/store";
+    import {initData, isExist} from "../scripts/store/store";
 
     onMount(async () => {
+        console.log('app onMount!')
         window.api.response('mainResponse', (data) => {
             $isExist = data;
             window.api.removeResponse('mainResponse');
@@ -14,9 +15,15 @@
     })
 
     afterUpdate(() => {
-        if (!!$isExist && $isExist) {
-            push('/main');
-        } else push('/step1')
+        // 환경설정 - 평가데이터 가져오기 아닌 경우
+        if ($initData.status !== 'reimport') {
+            if (!!$isExist && $isExist) {
+                push('/main');
+            } else {
+                $initData.status = 'init';
+                push('/step1');
+            }
+        }
     })
 
 </script>
