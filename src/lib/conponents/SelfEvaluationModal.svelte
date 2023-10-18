@@ -6,12 +6,14 @@
 
     let answerList = [];
     let subAnswerList = [];
-    let checkedAnswer = 0;
+    let singleChoiceAnswer = 0;
+    let multiChoicePoint = 0;
+    let multiChoiceAnswer = [];
     let isCommentShow = false;
 
     let dialogOption = {
         option: {
-            type:'',
+            type: '',
             buttons: [],
             defaultId: 0,
             title: '',
@@ -24,18 +26,31 @@
     export let isModalShow = false;
     export let questionList = [];
     export let selectedSeq = 0;
+
     export function preventModalClose(event) {
         event.stopPropagation(); // 모달 클릭 이벤트 중지
     }
+
     let subAnswerElements = [];
 
     onMount(() => {
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
-            if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
-                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                // 객관식 단일항목
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중항목
+                // 체크된 답변 변경
+                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                    ? [] // 빈 배열
+                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                multiChoiceCheck();
             } else {
+                // 주관식
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
             }
         }
@@ -52,14 +67,42 @@
     document.addEventListener('keyup', keyboardEvent)
 
     /**
+     * MultipleChoice 선택된 답변 배점 총 합
+     * */
+    function multiChoiceCheck(seq) {
+        if (!!seq) {
+            // 이미 체크 된 답변
+            if (multiChoiceAnswer.includes(seq.toString())) {
+                multiChoiceAnswer = multiChoiceAnswer.filter((e) => e !== seq.toString())
+            } else multiChoiceAnswer.push(seq.toString());
+        }
+
+        multiChoicePoint = 0;
+        if (multiChoiceAnswer.length > 0) {
+            multiChoiceAnswer.forEach(e => {
+                multiChoicePoint += answerList[e - 1][`anspoint${e}`]
+            });
+        }
+    }
+
+    /**
      * 이전문제
      * */
     function prev() {
         if (selectedSeq !== 1) {
             selectedSeq = selectedSeq - 1;
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
-                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중항목
+                // 체크된 답변 변경
+                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                    ? [] // 빈 배열
+                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                multiChoiceCheck();
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
             }
@@ -76,20 +119,32 @@
             self_score: '',
             self_memo: ''
         };
-         if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
+        // 객관식 단일체크
+        if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
             // 답변 체크 된 경우 저장 후 다음문항 이동
-            if (checkedAnswer !== 0) {
+            if (singleChoiceAnswer !== 0) {
                 data = {
                     id: selectedSeq,
-                    self_result: checkedAnswer,
-                    self_score: answerList[checkedAnswer - 1][`anspoint${checkedAnswer}`],
+                    self_result: singleChoiceAnswer,
+                    self_score: answerList[singleChoiceAnswer - 1][`anspoint${singleChoiceAnswer}`],
                     self_memo: questionList[selectedSeq - 1].self_memo || ''
                 };
                 saveAndMoveToNext(data);
             } else {
                 moveToNext();
             }
-        } else if (questionList[selectedSeq - 1].type === QuestionType.SubAnswer) {
+        } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+            // 객관식 다중체크
+            data = {
+                id: selectedSeq,
+                self_result: typeof multiChoiceAnswer === 'string' ? multiChoiceAnswer : multiChoiceAnswer.sort().join(';'),
+                self_score: multiChoicePoint,
+                self_memo: questionList[selectedSeq - 1].self_memo || ''
+            };
+            saveAndMoveToNext(data);
+
+        } else {
+            // 주관식
             let inputs = document.getElementsByName('answer');
             let values = Array.from(inputs, input => input.value);
 
@@ -160,8 +215,17 @@
         window.api.response('selfResponse', (data) => { // question 받아오기 결과
             questionList = data; // questionList 업데이트
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-            if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
-                checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중항목
+                // 체크된 답변 변경
+                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                    ? [] // 빈 배열
+                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                    ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                    : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                multiChoiceCheck();
             } else {
                 subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
                 subAnswerElements = document.getElementsByName('answer');
@@ -177,8 +241,20 @@
      * 상단 셀렉트 박스로 문항 선택 시 해당 문항으로 이동
      * */
     function selectQuestion() {
-        checkedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
-        answerList = extractAnswers(questionList[selectedSeq - 1]); // 객관식 답변 리스트
+        if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+            singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+        } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+            // 객관식 다중항목
+            // 체크된 답변 변경
+            multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                ? [] // 빈 배열
+                : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+            multiChoiceCheck();
+        } else {
+            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
+        }
     }
 
     function popUpComment() {
@@ -190,27 +266,45 @@
             // 숫자입력 || numpad로 시작 && numpadEnter 아님 && numpad1, numpad2 처럼 숫자가 포함되어 있음(numpad 특수문자 제외를 위함)
             if (e.code.startsWith('Digit') || e.code.startsWith('Numpad') && e.code !== 'NumpadEnter' && /[0-9]/.test(e.code)) {
                 if ($completeYn !== Yn.Y) {
-                    if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
+                    // 객관식 단일체크
+                    if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
                         // 키패드로 입력한 숫자가 전체 답변 갯수보다 클 경우 마지막번호 체크
                         if (Number(e.key) > answerList.length) {
-                            checkedAnswer = answerList.length;
-                        } else checkedAnswer = Number(e.key);
+                            singleChoiceAnswer = answerList.length;
+                        } else singleChoiceAnswer = Number(e.key);
+                        // 객관식 다중항목
+                    } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                        if (Number(e.key) <= answerList.length) {
+                            // 체크박스 체크
+                            let selectedAnswer = document.getElementsByName(`checkbox${Number(e.key) - 1}`)[0];
+                            selectedAnswer.checked = !selectedAnswer.checked;
+                            multiChoiceCheck(Number(e.key))
+                        }
                     }
                 }
             } else {
                 switch (e.code) {
-                    case 'ArrowRight': case 'Enter': case 'NumpadEnter': next(); break;
-                    case 'ArrowLeft': prev(); break;
+                    case 'ArrowRight':
+                    case 'Enter':
+                    case 'NumpadEnter':
+                        next();
+                        break;
+                    case 'ArrowLeft':
+                        prev();
+                        break;
                 }
             }
         }
     }
 </script>
 
-<div class="modal-overlay" on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
-    <div style="width: 100%; min-height: 700px; background-color: white; border: 1px solid black" on:click={preventModalClose}>
+<div class="modal-overlay"
+     on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
+    <div style="width: 100%; min-height: 700px; background-color: white; border: 1px solid black"
+         on:click={preventModalClose}>
         <div style="border-bottom: 1px solid black; height: 30px; display: flex; justify-content: end">
-            <div style="cursor:pointer; font-size: 20px; margin-right: 10px" on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
+            <div style="cursor:pointer; font-size: 20px; margin-right: 10px"
+                 on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
                 X
             </div>
         </div>
@@ -218,7 +312,8 @@
             <!-- Modal contents start -->
             <div style="display: flex; justify-content: space-between">
                 <div style="display: flex; align-items: center">
-                    <select bind:value={selectedSeq} on:change={selectQuestion} on:keydown={(e) => {e.preventDefault()}}>
+                    <select bind:value={selectedSeq} on:change={selectQuestion}
+                            on:keydown={(e) => {e.preventDefault()}}>
                         {#each questionList as list}
                             <option value="{list.id}">{list.num}</option>
                         {/each}
@@ -229,7 +324,9 @@
                 </div>
                 {#if isCommentShow}
                     <div style="width: 300px; height: 150px; border: 1px solid black; position: fixed; background-color: white; right: 50px">
-                        <div style="display: flex; justify-content: end; margin-right: 5px; cursor: pointer" on:click={() => {isCommentShow = false}}>X</div>
+                        <div style="display: flex; justify-content: end; margin-right: 5px; cursor: pointer"
+                             on:click={() => {isCommentShow = false}}>X
+                        </div>
                         <div style="padding: 5px">
                             {questionList[selectedSeq - 1].comment}
                         </div>
@@ -249,31 +346,57 @@
             </div>
             <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">답변</div>
             <div style="width: 60%; height: 100%; border: 1px solid black; margin-top: 10px; padding: 10px">
-                <!-- 객관식 -->
-                {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
+                <!-- 객관식 단일체크 -->
+                {#if questionList[selectedSeq - 1].type === QuestionType.SingleChoice}
                     {#each answerList as list, i}
                         {#if list[Object.keys(list)[0]] !== ''}
                             <div style="display: flex; justify-content: space-between">
                                 <div>
-                                    <input type="radio" value="{i + 1}" bind:group={checkedAnswer} disabled={$completeYn === Yn.Y}/>
+                                    <input type="radio" value="{i + 1}" bind:group={singleChoiceAnswer}
+                                           disabled={$completeYn === Yn.Y}/>
                                     <span>{list[`answer${i + 1}`]}</span>
                                 </div>
                                 <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
                             </div>
                         {/if}
                     {/each}
+                {:else if questionList[selectedSeq - 1].type === QuestionType.MultipleChoice}
+                    <!-- 객관식 다중체크 -->
+                    <div style="display: flex">
+                        <div style="width: 90%">
+                            {#each answerList as list, i}
+                                {#if list[Object.keys(list)[0]] !== ''}
+                                    <div style="display: flex; justify-content: space-between">
+                                        <div>
+                                            <input type="checkbox" name="checkbox{i}" value="{i + 1}" disabled={$completeYn === Yn.Y}
+                                                   on:change={() => {multiChoiceCheck(i + 1)}}
+                                                   checked={multiChoiceAnswer.includes((i + 1).toString())}/>
+                                            <span>{list[`answer${i + 1}`]}</span>
+                                            <span>({list[`anspoint${i + 1}`]}점)</span>
+                                        </div>
+                                    </div>
+                                {/if}
+                            {/each}
+                        </div>
+                        <div style="width: 10%; display: flex; justify-content: end; align-items: center">
+                            <span>{multiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
+                        </div>
+                    </div>
                 {:else}
                     <!-- 주관식 -->
                     {#each answerList as list, i}
                         <div style="display: flex; justify-content: space-between">
-                            <span>{list[`answer${i+1}`]}</span>
-                            <input name="answer" bind:value={subAnswerList[i]} type="text" disabled={$completeYn === Yn.Y}/>
+                            <span>{list[`answer${i + 1}`]}</span>
+                            <input name="answer" bind:value={subAnswerList[i]} type="text"
+                                   disabled={$completeYn === Yn.Y}/>
                         </div>
                     {/each}
                 {/if}
             </div>
             <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">비고</div>
-            <textarea id="textarea" style="width: 62%; height: 100%; min-height: 100px; border: 1px solid black; margin-top: 10px; padding: 10px" bind:value={questionList[selectedSeq - 1].self_memo}></textarea>
+            <textarea id="textarea"
+                      style="width: 62%; height: 100%; min-height: 100px; border: 1px solid black; margin-top: 10px; padding: 10px"
+                      bind:value={questionList[selectedSeq - 1].self_memo}></textarea>
             <div style="display:flex; justify-content: end; margin-top: 20px; margin-right: 50px; gap: 20px">
                 <h1 style="cursor: pointer" on:click={prev}>←</h1>
                 <h1 style="cursor: pointer" on:click={next}>→</h1>

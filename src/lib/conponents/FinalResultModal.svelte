@@ -8,8 +8,8 @@
     let selfSubAnswerList = [];
     let inspectSubAnswerList = [];
     let fileList = [];
-    let selfCheckedAnswer = 0;
-    let inspectCheckedAnswer = 0;
+    let selfsingleChoiceAnswer = 0;
+    let inspectsingleChoiceAnswer = 0;
     let isCommentShow = false;
 
     let dialogOption = {
@@ -110,11 +110,11 @@
      * 답변 업데이트
      * */
     function updateAnswer() {
-        if (questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer) {
+        if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
             // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
-            selfCheckedAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result'];
+            selfsingleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result'];
             // 현장실사 답변 없는경우 자체평가 답변으로, 있는경우 해당 값으로 업데이트
-            inspectCheckedAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
+            inspectsingleChoiceAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
         } else {
             // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
             selfSubAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
@@ -191,12 +191,12 @@
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">답변</div>
                     <div style="margin-top: 10px; border: 1px solid black; padding: 10px">
                         <!-- 객관식 -->
-                        {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
+                        {#if questionList[selectedSeq - 1].type === QuestionType.SingleChoice}
                             {#each answerList as list, i}
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={selfCheckedAnswer} disabled/>
+                                            <input type="radio" value="{i + 1}" bind:group={selfsingleChoiceAnswer} disabled/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
@@ -222,12 +222,12 @@
                     <div style="margin-top: 10px; font-size: 20px; font-weight: bold;">현장실사 답변</div>
                     <div style="margin-top: 10px; border: 1px solid black; padding: 10px">
                         <!-- 객관식 -->
-                        {#if questionList[selectedSeq - 1].type === QuestionType.MultipleAnswer}
+                        {#if questionList[selectedSeq - 1].type === QuestionType.SingleChoice}
                             {#each answerList as list, i}
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={inspectCheckedAnswer} disabled/>
+                                            <input type="radio" value="{i + 1}" bind:group={inspectsingleChoiceAnswer} disabled/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>

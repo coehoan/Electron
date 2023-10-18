@@ -6,7 +6,8 @@ export const Yn = {
 Object.freeze(Yn);
 export const QuestionType = {
     SubAnswer: '주관식',
-    MultipleAnswer: '객관식'
+    MultipleChoice: '다중선택',
+    SingleChoice: '단일선택'
 }
 Object.freeze(QuestionType);
 

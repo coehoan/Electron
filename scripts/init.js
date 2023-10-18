@@ -74,7 +74,7 @@ module.exports = {
                 db.run(`
                 CREATE TABLE IF NOT EXISTS questions (
                 id INTEGER PRIMARY KEY,
-                num INTEGER,
+                num TEXT,
                 type TEXT,
                 point REAL,
                 question TEXT,
@@ -88,9 +88,9 @@ module.exports = {
                 anspoint4 REAL NULL,
                 answer5 TEXT NULL,
                 anspoint5 REAL NULL,
-                self_result INTEGER NULL,
+                self_result TEXT NULL,
                 self_score REAL NULL,
-                inspect_result INTEGER NULL,
+                inspect_result TEXT NULL,
                 inspect_score REAL NULL,
                 stalenessYn TEXT,
                 evidence TEXT NULL,
