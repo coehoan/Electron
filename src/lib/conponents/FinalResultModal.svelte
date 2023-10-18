@@ -7,9 +7,13 @@
     let answerList = [];
     let selfSubAnswerList = [];
     let inspectSubAnswerList = [];
+    let selfSingleChoiceAnswer = 0;
+    let inspectSingleChoiceAnswer = 0;
+    let selfMultiChoiceAnswer = [];
+    let inspectMultiChoiceAnswer = [];
+    let selfMultiChoicePoint = 0;
+    let inspectMultiChoicePoint = 0;
     let fileList = [];
-    let selfsingleChoiceAnswer = 0;
-    let inspectsingleChoiceAnswer = 0;
     let isCommentShow = false;
 
     let dialogOption = {
@@ -112,9 +116,22 @@
     function updateAnswer() {
         if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
             // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
-            selfsingleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result'];
+            selfSingleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']);
             // 현장실사 답변 없는경우 자체평가 답변으로, 있는경우 해당 값으로 업데이트
-            inspectsingleChoiceAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? questionList[selectedSeq - 1]['self_result'] : questionList[selectedSeq - 1]['inspect_result'] // 체크된 답변 변경
+            inspectSingleChoiceAnswer = questionList[selectedSeq - 1]['inspect_result'] === '' ? parseInt(questionList[selectedSeq - 1]['self_result']) : parseInt(questionList[selectedSeq - 1]['inspect_result']) // 체크된 답변 변경
+        } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+            selfMultiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                ? [] // 빈 배열
+                : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+            inspectMultiChoiceAnswer = (questionList[selectedSeq - 1]['inspect_result'] === '' && questionList[selectedSeq - 1]['inspect_score'] === '') // result, score 둘 다 빈값일 때
+                ? selfMultiChoiceAnswer // 자체평가랑 동일하게
+                : questionList[selectedSeq - 1]['inspect_result'] === '' && questionList[selectedSeq - 1]['inspect_score'] === 0 // result는 빈값, score는 0일때 (아무것도 체크 안하고 저장된 경우)
+                ? [] // 빈 배열
+                : questionList[selectedSeq - 1]['inspect_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                ? questionList[selectedSeq - 1]['inspect_result'].split(';') // ;로 split
+                : new Array(1).fill(questionList[selectedSeq - 1]['inspect_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
         } else {
             // 자체평가 답변 없는경우 0, 있는경우 해당 값으로 업데이트
             selfSubAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
@@ -196,19 +213,40 @@
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={selfsingleChoiceAnswer} disabled/>
+                                            <input type="radio" value="{i + 1}" bind:group={selfSingleChoiceAnswer} disabled/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
                                     </div>
                                 {/if}
                             {/each}
+                        {:else if questionList[selectedSeq - 1].type === QuestionType.MultipleChoice}
+                            <!-- 객관식 다중체크 -->
+                            <div style="display: flex">
+                                <div style="width: 90%">
+                                    {#each answerList as list, i}
+                                        {#if list[Object.keys(list)[0]] !== ''}
+                                            <div style="display: flex; justify-content: space-between">
+                                                <div>
+                                                    <input type="checkbox" value="{i + 1}"
+                                                           checked={selfMultiChoiceAnswer.includes((i + 1).toString())} disabled/>
+                                                    <span>{list[`answer${i + 1}`]}</span>
+                                                    <span>({list[`anspoint${i + 1}`]}점)</span>
+                                                </div>
+                                            </div>
+                                        {/if}
+                                    {/each}
+                                </div>
+                                <div style="width: 10%; display: flex; justify-content: end; align-items: center">
+                                    <span>{questionList[selectedSeq - 1].self_score} / {questionList[selectedSeq - 1].point}</span>
+                                </div>
+                            </div>
                         {:else}
                             <!-- 주관식 -->
                             {#each answerList as list, i}
                                 <div style="display: flex; justify-content: space-between">
                                     <span>{list[`answer${i+1}`]}</span>
-                                    <input bind:value={selfSubAnswerList[i]} type="text"/>
+                                    <input bind:value={selfSubAnswerList[i]} type="text" disabled/>
                                 </div>
                             {/each}
                         {/if}
@@ -227,19 +265,40 @@
                                 {#if list[Object.keys(list)[0]] !== ''}
                                     <div style="display: flex; justify-content: space-between">
                                         <div>
-                                            <input type="radio" value="{i + 1}" bind:group={inspectsingleChoiceAnswer} disabled/>
+                                            <input type="radio" value="{i + 1}" bind:group={inspectSingleChoiceAnswer} disabled/>
                                             <span>{list[`answer${i + 1}`]}</span>
                                         </div>
                                         <span>{list[`anspoint${i + 1}`]} / {answerList[0]['anspoint1']}</span>
                                     </div>
                                 {/if}
                             {/each}
+                        {:else if questionList[selectedSeq - 1].type === QuestionType.MultipleChoice}
+                            <!-- 객관식 다중체크 -->
+                            <div style="display: flex">
+                                <div style="width: 90%">
+                                    {#each answerList as list, i}
+                                        {#if list[Object.keys(list)[0]] !== ''}
+                                            <div style="display: flex; justify-content: space-between">
+                                                <div>
+                                                    <input type="checkbox" value="{i + 1}"
+                                                           checked={inspectMultiChoiceAnswer.includes((i + 1).toString())} disabled/>
+                                                    <span>{list[`answer${i + 1}`]}</span>
+                                                    <span>({list[`anspoint${i + 1}`]}점)</span>
+                                                </div>
+                                            </div>
+                                        {/if}
+                                    {/each}
+                                </div>
+                                <div style="width: 10%; display: flex; justify-content: end; align-items: center">
+                                    <span>{questionList[selectedSeq - 1].inspect_score} / {questionList[selectedSeq - 1].point}</span>
+                                </div>
+                            </div>
                         {:else}
                             <!-- 주관식 -->
                             {#each answerList as list, i}
                                 <div style="display: flex; justify-content: space-between">
                                     <span>{list[`answer${i+1}`]}</span>
-                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text"/>
+                                    <input name="answer" bind:value={inspectSubAnswerList[i]} type="text" disabled/>
                                 </div>
                             {/each}
                         {/if}
