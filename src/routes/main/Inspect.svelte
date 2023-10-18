@@ -1,10 +1,11 @@
 <script>
     import Header from "../../lib/layout/Header.svelte";
     import {onDestroy, onMount} from "svelte";
-    import {checkInspectScores} from "../../../scripts/util/common";
+    import {checkInspectScores, checkSelfScores} from "../../../scripts/util/common";
     import InspectModal from "../../lib/conponents/InspectModal.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
     import {DialogType, MainTitle, Yn} from "../../../scripts/util/enum";
+    import {push} from "svelte-spa-router";
 
     let title = MainTitle.Inspect;
     let questionList = [];
@@ -23,6 +24,7 @@
     $: totalCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.point, 0); // 위기 총점
     let isModalShow = false;
     let selectedSeq = 0;
+    let isListShow = false;
 
     let dialogOption = {
         option: {
@@ -38,6 +40,29 @@
     onMount(() => {
         window.api.response('selfResponse', (data) => {
             questionList = data;
+            isListShow = checkSelfScores(questionList); // 자체평가 미완료 항목 체크
+            if (!isListShow) {
+                dialogOption = {
+                    option: {
+                        type: DialogType.Info,
+                        buttons: [],
+                        defaultId: 0,
+                        title: '알림',
+                        message: '',
+                        detail: '자체평가가 완료되지 않았습니다.'
+                    }
+                };
+                window.api.request('dialog', dialogOption);
+
+                window.api.response('dialogCallback', data => {
+                    // 확인버튼 클릭 시
+                    if (data.buttonId === 0) {
+                        push('/self'); // 자체평가로 이동
+                    }
+                    window.api.removeResponse('dialogCallback');
+                    window.api.removeResponse('selfResponse');
+                });
+            }
         })
         window.api.request('getQuestionInfo');
     })
@@ -110,66 +135,68 @@
     {/if}
     <Header {title}/>
 
-    <div style="margin-top: 30px">
-        <b>진행도: {selfProgress} / {questionList.length}</b>
+    {#if isListShow}
+        <div style="margin-top: 30px">
+            <b>진행도: {selfProgress} / {questionList.length}</b>
+            <table style="width: 100%">
+                <thead>
+                <tr style="background-color: black; color: white; height: 30px;">
+                    <th width="20%">구분</th>
+                    <th width="20%">총점</th>
+                    <th width="20%">관리</th>
+                    <th width="20%">기술</th>
+                    <th width="20%">위기대응</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr style="text-align: center;">
+                    <td>자체평가</td>
+                    <td>{selfScore} / {totalScore}</td>
+                    <td>{selfManage} / {totalManage}</td>
+                    <td>{selfTech} / {totalTech}</td>
+                    <td>{selfCrisis} / {totalCrisis}</td>
+                </tr>
+                <tr style="text-align: center">
+                    <td>현장실사</td>
+                    <td>{inspectScore} / {totalScore}</td>
+                    <td>{inspectManage} / {totalManage}</td>
+                    <td>{inspectTech} / {totalTech}</td>
+                    <td>{inspectCrisis} / {totalCrisis}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; justify-content: end; margin-top: 30px">
+            {#if $completeYn !== Yn.Y}
+                <button on:click={submit}>Export</button>
+            {/if}
+        </div>
         <table style="width: 100%">
             <thead>
-            <tr style="background-color: black; color: white; height: 30px;">
-                <th width="20%">구분</th>
-                <th width="20%">총점</th>
-                <th width="20%">관리</th>
-                <th width="20%">기술</th>
-                <th width="20%">위기대응</th>
+            <tr style="background-color: black; color: white; height: 50px;">
+                <th width="5%">순번</th>
+                <th width="10%">항목번호</th>
+                <th width="5%">배점</th>
+                <th width="15%">자체평가점수</th>
+                <th width="15%">현장실사점수</th>
+                <th width="50%">질문</th>
             </tr>
             </thead>
             <tbody>
-            <tr style="text-align: center;">
-                <td>자체평가</td>
-                <td>{selfScore} / {totalScore}</td>
-                <td>{selfManage} / {totalManage}</td>
-                <td>{selfTech} / {totalTech}</td>
-                <td>{selfCrisis} / {totalCrisis}</td>
-            </tr>
-            <tr style="text-align: center">
-                <td>현장실사</td>
-                <td>{inspectScore} / {totalScore}</td>
-                <td>{inspectManage} / {totalManage}</td>
-                <td>{inspectTech} / {totalTech}</td>
-                <td>{inspectCrisis} / {totalCrisis}</td>
-            </tr>
+            {#each questionList as list, i}
+                <tr on:click={() => {openModal(i)}} style="height: 50px; text-align: center; background-color: {getColor(list)}">
+                    <td>{list.id}</td>
+                    <td>{list.num}</td>
+                    <td>{list.point}</td>
+                    <td>{list.self_score}</td>
+                    <td>{list.inspect_score}</td>
+                    <td>{list.question}</td>
+                </tr>
+            {/each}
             </tbody>
         </table>
-    </div>
-
-    <div style="display: flex; justify-content: end; margin-top: 30px">
-        {#if $completeYn !== Yn.Y}
-            <button on:click={submit}>Export</button>
-        {/if}
-    </div>
-    <table style="width: 100%">
-        <thead>
-        <tr style="background-color: black; color: white; height: 50px;">
-            <th width="5%">순번</th>
-            <th width="10%">항목번호</th>
-            <th width="5%">배점</th>
-            <th width="15%">자체평가점수</th>
-            <th width="15%">현장실사점수</th>
-            <th width="50%">질문</th>
-        </tr>
-        </thead>
-        <tbody>
-        {#each questionList as list, i}
-            <tr on:click={() => {openModal(i)}} style="height: 50px; text-align: center; background-color: {getColor(list)}">
-                <td>{list.id}</td>
-                <td>{list.num}</td>
-                <td>{list.point}</td>
-                <td>{list.self_score}</td>
-                <td>{list.inspect_score}</td>
-                <td>{list.question}</td>
-            </tr>
-        {/each}
-        </tbody>
-    </table>
+    {/if}
 </main>
 
 <style>

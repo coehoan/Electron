@@ -6,7 +6,6 @@
     import {initData, isExist} from "../scripts/store/store";
 
     onMount(async () => {
-        console.log('app onMount!')
         window.api.response('mainResponse', (data) => {
             $isExist = data;
             window.api.removeResponse('mainResponse');
