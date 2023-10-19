@@ -14,8 +14,8 @@ module.exports = {
             dialog.showMessageBox(mainWindow, args.option)
                 .then(result => {
                     event.sender.send('dialogCallback', {callbackId: args.callbackId, buttonId: result.response});
-                    isOpenDialog = false;
                 });
         }
+        isOpenDialog = false;
     })
 };

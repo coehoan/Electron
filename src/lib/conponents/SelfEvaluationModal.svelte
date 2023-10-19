@@ -37,7 +37,22 @@
         answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         // 자체평가 진행 한 항목일 때
         if (questionList[selectedSeq - 1]['self_result'] !== '') {
-            updateAnswer();
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                // 객관식 단일항목
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중항목
+                // 체크된 답변 변경
+                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                    ? [] // 빈 배열
+                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                        ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                        : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                multiChoiceCheck();
+            } else {
+                // 주관식
+                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+            }
         }
     })
 
@@ -74,10 +89,23 @@
      * 이전문제
      * */
     function prev() {
-        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
         if (selectedSeq !== 1) {
             selectedSeq = selectedSeq - 1;
-            updateAnswer();
+            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중항목
+                // 체크된 답변 변경
+                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                    ? [] // 빈 배열
+                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                        ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                        : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                multiChoiceCheck();
+            } else {
+                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
+            }
         }
     }
 
@@ -165,20 +193,20 @@
                 },
                 callbackId: 'selfMoveToNext'
             }
-            window.api.request('dialog', dialogOption);
             window.api.response('dialogCallback', (data) => {
                 if (data.callbackId === 'selfMoveToNext') {
-                    window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
                     window.api.response('selfResponse', (data) => { // question 받아오기 결과
                         questionList = data; // questionList 업데이트
                         selectedSeq = 1;
+                        isModalShow = false; // 모달창 닫기
+                        document.getElementsByTagName('body')[0].style.overflow = 'auto';
+                        window.api.removeResponse('dialogCallback');
+                        window.api.removeResponse('selfResponse');
                     })
-                    isModalShow = false; // 모달창 닫기
-                    document.getElementsByTagName('body')[0].style.overflow = 'auto';
-                    window.api.removeResponse('dialogCallback');
-                    window.api.removeResponse('selfResponse');
+                    window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
                 }
             });
+            window.api.request('dialog', dialogOption);
         } else {
             selectedSeq = selectedSeq + 1; // 다음문항 이동
             isCommentShow = false; // 지표 해설 팝업창 close
@@ -188,7 +216,7 @@
             questionList = data; // questionList 업데이트
             answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
             if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
             } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
                 // 객관식 다중항목
                 // 체크된 답변 변경
@@ -213,19 +241,8 @@
      * 상단 셀렉트 박스로 문항 선택 시 해당 문항으로 이동
      * */
     function selectQuestion() {
-        answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
-        updateAnswer();
-    }
-
-    function popUpComment() {
-        isCommentShow = true;
-    }
-
-
-    function updateAnswer() {
         if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
-            // 객관식 단일항목
-            singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
+            singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : questionList[selectedSeq - 1]['self_result']; // 체크된 답변 변경
         } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
             // 객관식 다중항목
             // 체크된 답변 변경
@@ -236,9 +253,12 @@
                     : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
             multiChoiceCheck();
         } else {
-            // 주관식
-            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+            subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';');
         }
+    }
+
+    function popUpComment() {
+        isCommentShow = true;
     }
 
     function keyboardEvent(e) {
@@ -342,29 +362,26 @@
                     {/each}
                 {:else if questionList[selectedSeq - 1].type === QuestionType.MultipleChoice}
                     <!-- 객관식 다중체크 -->
-                    {#key answerList}
-                        <div style="display: flex">
-                            <div style="width: 90%">
-                                {#each answerList as list, i}
-                                    {#if list[Object.keys(list)[0]] !== ''}
-                                        <div style="display: flex; justify-content: space-between">
-                                            <div>
-                                                <input type="checkbox" name="checkbox{i}" value="{i + 1}"
-                                                       disabled={$completeYn === Yn.Y}
-                                                       on:change={() => {multiChoiceCheck(i + 1)}}
-                                                       checked={multiChoiceAnswer.includes((i + 1).toString())}/>
-                                                <span>{list[`answer${i + 1}`]}</span>
-                                                <span>({list[`anspoint${i + 1}`]}점)</span>
-                                            </div>
+                    <div style="display: flex">
+                        <div style="width: 90%">
+                            {#each answerList as list, i}
+                                {#if list[Object.keys(list)[0]] !== ''}
+                                    <div style="display: flex; justify-content: space-between">
+                                        <div>
+                                            <input type="checkbox" name="checkbox{i}" value="{i + 1}" disabled={$completeYn === Yn.Y}
+                                                   on:change={() => {multiChoiceCheck(i + 1)}}
+                                                   checked={multiChoiceAnswer.includes((i + 1).toString())}/>
+                                            <span>{list[`answer${i + 1}`]}</span>
+                                            <span>({list[`anspoint${i + 1}`]}점)</span>
                                         </div>
-                                    {/if}
-                                {/each}
-                            </div>
-                            <div style="width: 10%; display: flex; justify-content: end; align-items: center">
-                                <span>{multiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
-                            </div>
+                                    </div>
+                                {/if}
+                            {/each}
                         </div>
-                    {/key}
+                        <div style="width: 10%; display: flex; justify-content: end; align-items: center">
+                            <span>{multiChoicePoint} / {questionList[selectedSeq - 1].point}</span>
+                        </div>
+                    </div>
                 {:else}
                     <!-- 주관식 -->
                     {#each answerList as list, i}
