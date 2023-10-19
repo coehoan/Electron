@@ -57,21 +57,22 @@
                     window.api.response('selfResponse', (data) => {
                         questionList = data;
                         window.api.removeResponse('selfResponse');
+
+                        // 기관정보 store값 업데이트
+                        window.api.response('mainResponse', (data) => {
+                            $companyName = data.name;
+                            $companySeq = data.id;
+                            $companyCode = data.code;
+                            $companyYear = data.year;
+                            $completeYn = Yn.Y; // 현장실사 완료
+
+                            window.api.removeResponse('mainResponse');
+                            isFileLoadShow = false; // 팝업창 닫기
+                            $isFinalListShow = true; // 결과 리스트 노출
+                        })
+                        window.api.request('getMainInfo');
                     })
                     window.api.request('getQuestionInfo');
-                    $isFinalListShow = true; // 결과 리스트 노출
-                    // 기관정보 store값 업데이트
-                    window.api.response('mainResponse', (data) => {
-                        $companyName = data.name;
-                        $companySeq = data.id;
-                        $companyCode = data.code;
-                        $companyYear = data.year;
-                        $completeYn = Yn.Y; // 현장실사 완료
-
-                        window.api.removeResponse('mainResponse');
-                        isFileLoadShow = false; // 팝업창 닫기
-                    })
-                    window.api.request('getMainInfo');
                 }
             })
         }
