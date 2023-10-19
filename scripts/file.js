@@ -337,6 +337,10 @@ module.exports = {
             event.sender.send('backUpResponse', true);
         })
     }),
+    /**
+     * 복원
+     * args: 저장 폴더 경로
+     * */
     restore: ipcMain.on('restore', (event, args) => {
         let tmpFolderPath = path.join(__dirname, '..', '../tmp');
         let zip = new AdmZip(args);

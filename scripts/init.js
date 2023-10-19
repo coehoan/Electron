@@ -37,11 +37,17 @@ module.exports = {
                     name: 'JSON', extensions: ['json']
                 }]
             }).then(async (result) => {
+                // 평가데이터 가져오기로 진입 시 static 폴더 체크 후 존재하면 삭제
+                let staticPath = path.join(__dirname, '../static');
+                if (fs.existsSync(staticPath)) {
+                    fs.rmSync(staticPath, {recursive: true, force: true});
+                }
+
                 if (!result.canceled) {
                     let res = await readFile(result.filePaths[0]);
-                    event.sender.send('step1Response', res)
+                    event.sender.send('step1Response', res);
                 } else {
-                    event.sender.send('step1Response', 'canceled')
+                    event.sender.send('step1Response', 'canceled');
                 }
             })
         } catch (err) {
