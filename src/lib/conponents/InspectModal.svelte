@@ -3,6 +3,7 @@
     import {extractAnswers, splitArray} from "../../../scripts/util/common";
     import {companyYear, completeYn} from "../../../scripts/store/store";
     import {DialogType, QuestionType, Yn} from "../../../scripts/util/enum";
+    import Loading from "./Loading.svelte";
 
     let answerList = [];
     let selfSubAnswerList = [];
@@ -16,6 +17,7 @@
     let isCommentShow = false;
     let selectedFile;
     let selectedFileName = '';
+    let isLoadingShow = false;
     let data = {
         id: '',
         inspect_result: '',
@@ -293,15 +295,19 @@
     function saveInspectFile() {
         let questionNum = questionList[selectedSeq - 1].num;
         // TODO: 동일 파일명 처리
-        window.api.request('saveInspectFile', {questionNum: questionNum, year: $companyYear});
-        window.api.response('inspectSaveFileResponse', (data) => {
-            if (data === 'canceled') {
-                console.log('Canceled.')
-            } else {
-                fileList = [...fileList, data];
+        window.api.response('openFileDialogResponse', (data) => {
+            if (data.status) {
+                isLoadingShow = true;
+                window.api.removeResponse('openFileDialogResponse');
+                window.api.request('saveInspectFile', {questionNum: questionNum, year: $companyYear, path: data.value});
             }
-            window.api.removeResponse('inspectSaveFileResponse');
         })
+        window.api.response('inspectSaveFileResponse', (data) => {
+            fileList = [...fileList, data];
+            window.api.removeResponse('inspectSaveFileResponse');
+            isLoadingShow = false;
+        })
+        window.api.request('openFileDialog');
     }
 
     /**
@@ -349,6 +355,11 @@
     }
 </script>
 
+{#if isLoadingShow}
+    <div class="loading-overlay">
+        <Loading bind:isLoadingShow={isLoadingShow}/>
+    </div>
+{/if}
 <div class="modal-overlay" on:click={() => {isModalShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
     <div style="width: 100%; min-height: 700px; background-color: white; border: 1px solid black" on:click={preventModalClose}>
         <div style="border-bottom: 1px solid black; height: 30px; display: flex; justify-content: end">
@@ -533,8 +544,16 @@
         justify-content: center;
         align-items: center
     }
-
     textarea {
         resize: none;
+    }
+    .loading-overlay {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99;
     }
 </style>

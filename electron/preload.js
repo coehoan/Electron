@@ -3,11 +3,12 @@ const { contextBridge, ipcRenderer } = require('electron');
 let requestChannels = [
     'existFile', 'fileUpload', 'saveInitData', 'getMainInfo', 'getCompanyInfo', 'deleteAdmin', 'saveAdmin', 'getQuestionInfo',
     'importFile', 'exportSelfFile', 'exportInspectFile', 'saveSelfAnswer', 'saveInspectAnswer', 'saveInspectFile', 'getFileList', 'deleteFile', 'getFinalResult', 'getFinalFile',
-    'getOlderFileList', 'getOlderFileData', 'backUp', 'restore', 'dialog'];
+    'getOlderFileList', 'getOlderFileData', 'backUp', 'restore', 'dialog', 'openFileDialog', 'openFolderDialog'];
 let responseChannels = [
     'testResponse', 'mainResponse', 'step1Response', 'step2Response', 'step2CompanyList', 'step3Response', 'infoResponse', 'adminResponse', 'selfResponse',
     'evalSaveResponse', 'fileResponse', 'inspectResponse', 'inspectSaveResponse', 'inspectSaveFileResponse', 'fileListResponse', 'deleteFileResponse',
-    'companyResultResponse', 'getFinalFileResponse', 'getOlderFileListResponse', 'olderFileDataResponse', 'backUpResponse', 'restoreResponse', 'dialogCallback'];
+    'companyResultResponse', 'getFinalFileResponse', 'getOlderFileListResponse', 'olderFileDataResponse', 'backUpResponse', 'restoreResponse', 'dialogCallback',
+    'openFileDialogResponse', 'openFolderDialogResponse'];
 
 contextBridge.exposeInMainWorld(
     "api", {

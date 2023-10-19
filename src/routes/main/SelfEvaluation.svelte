@@ -5,6 +5,7 @@
     import Header from "../../lib/layout/Header.svelte";
     import {companyYear, completeYn} from "../../../scripts/store/store";
     import {DialogType, MainTitle, Yn} from "../../../scripts/util/enum";
+    import Loading from "../../lib/conponents/Loading.svelte";
 
     let title = MainTitle.SelfEvaluation;
     let questionList = [];
@@ -19,6 +20,7 @@
     $: totalCrisis = questionList.filter(e => e.num >= 30000).reduce((acc, item) => acc + item.point, 0); // 위기 총점
     let isModalShow = false;
     let selectedSeq = 0;
+    let isLoadingShow = false;
 
     let dialogOption = {
         option: {
@@ -49,11 +51,16 @@
     function submit() {
         // 미응답 항목 체크
         if (checkSelfScores(questionList)) {
-            window.api.request('exportSelfFile', $companyYear);
+            window.api.response('openFolderDialogResponse', (data) => {
+                if (data.status) {
+                    isLoadingShow = true;
+                    window.api.removeResponse('openFolderDialogResponse');
+                    window.api.request('exportSelfFile', {year: $companyYear, path: data.value});
+                }
+            })
+
             window.api.response('fileResponse', (data) => {
-                if (data === 'canceled') {
-                    console.log('Canceled.');
-                } else if (data) {
+                if (data) {
                     dialogOption = {
                         option: {
                             type: DialogType.Info,
@@ -65,9 +72,16 @@
                         }
                     };
                     window.api.request('dialog', dialogOption);
+                    window.api.response('dialogCallback', (data) => {
+                        // 확인버튼 클릭 시
+                        if (data.buttonId === 0) {
+                            isLoadingShow = false;
+                        }
+                    })
                 }
                 window.api.removeResponse('fileResponse');
             })
+            window.api.request('openFolderDialog');
         } else {
             dialogOption = {
                 option: {
@@ -94,6 +108,11 @@
 </script>
 
 <main>
+    {#if isLoadingShow}
+        <div class="loading-overlay">
+            <Loading bind:isLoadingShow={isLoadingShow}/>
+        </div>
+    {/if}
     {#if isModalShow}
         <SelfEvaluationModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
@@ -153,4 +172,13 @@
 </main>
 
 <style>
+    .loading-overlay {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99;
+    }
 </style>

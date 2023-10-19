@@ -12,10 +12,12 @@
     import FinalResultModal from "../../lib/conponents/FinalResultModal.svelte";
     import FinalResultFileLoad from "../../lib/conponents/FinalResultFileLoad.svelte";
     import {MainTitle, Yn} from "../../../scripts/util/enum";
+    import Loading from "../../lib/conponents/Loading.svelte";
 
     let title = MainTitle.FinalResult;
     let questionList = [];
     let companyResultList = [];
+    let isLoadingShow = false;
     $: selfScore = questionList.reduce((acc, item) => acc + item.self_score, 0); // 자체평가 점수
     $: inspectScore = questionList.reduce((acc, item) => acc + item.inspect_score, 0) // 현장실사 점수
     $: totalScore = questionList.reduce((acc, item) => acc + item.point, 0); // 평가 총점
@@ -67,7 +69,13 @@
      * 평가 결과 파일 불러오기
      * */
     function getFile() {
-        window.api.request('getFinalFile');
+        window.api.response('openFileDialogResponse', (data) => {
+            if (data.status) {
+                isLoadingShow = true;
+                window.api.removeResponse('openFileDialogResponse');
+                window.api.request('getFinalFile', data.value);
+            }
+        })
         window.api.response('getFinalFileResponse', (data) => {
             if (data === 'canceled') {
                 console.log('Canceled.');
@@ -96,7 +104,9 @@
 
             }
             window.api.removeResponse('getFinalFileResponse');
+            isLoadingShow = false;
         })
+        window.api.request('openFileDialog');
     }
 
     /**
@@ -117,6 +127,11 @@
 </script>
 
 <main>
+    {#if isLoadingShow}
+        <div class="loading-overlay">
+            <Loading bind:isLoadingShow={isLoadingShow}/>
+        </div>
+    {/if}
     {#if isModalShow}
         <FinalResultModal bind:isModalShow = {isModalShow} bind:questionList = {questionList} bind:selectedSeq = {selectedSeq}/>
     {/if}
@@ -181,5 +196,13 @@
 </main>
 
 <style>
-
+    .loading-overlay {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99;
+    }
 </style>

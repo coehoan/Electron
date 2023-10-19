@@ -3,8 +3,10 @@
     import {onDestroy} from "svelte";
     import {DialogType} from "../../../scripts/util/enum";
     import {initData, isFinalListShow} from "../../../scripts/store/store";
+    import Loading from "./Loading.svelte";
 
     export let isSettingShow = true;
+    let isLoadingShow = false;
 
     let dialogOption = {
         option: {
@@ -53,11 +55,15 @@
      * 백업
      * */
     function backUp() {
-        window.api.request('backUp');
+        window.api.response('openFolderDialogResponse', (data) => {
+            if (data.status) {
+                isLoadingShow = true;
+                window.api.removeResponse('openFolderDialogResponse');
+                window.api.request('backUp', data.value);
+            }
+        })
         window.api.response('backUpResponse', (data) => {
-            if (data === 'canceled') {
-                console.log('Canceled.');
-            } else if (data) {
+            if (data) {
                 dialogOption = {
                     option: {
                         type: DialogType.Info,
@@ -69,16 +75,31 @@
                     }
                 }
                 window.api.request('dialog', dialogOption);
+                window.api.response('dialogCallback', (data) => {
+                    // 확인버튼 클릭 시
+                    if (data.buttonId === 0) {
+                        isLoadingShow = false;
+                    }
+                })
             }
             window.api.removeResponse('backUpResponse');
-        });
+        })
+        window.api.request('openFolderDialog');
     }
 
     /**
      * 복원
      * */
     function restore() {
-        window.api.request('restore');
+        window.api.response('openFileDialogResponse', (data) => {
+            if (data.status) {
+                isLoadingShow = true;
+                window.api.removeResponse('openFileDialogResponse');
+                window.api.request('restore', data.value);
+            }
+        })
+        window.api.request('openFileDialog');
+        // window.api.request('restore');
         /*window.api.response('restoreResponse', (data) => {
             if (data === 'canceled') {
                 console.log('Canceled.');
@@ -99,6 +120,12 @@
         });*/
     }
 </script>
+
+{#if isLoadingShow}
+    <div class="loading-overlay">
+        <Loading bind:isLoadingShow={isLoadingShow}/>
+    </div>
+{/if}
 
 <div class="modal-overlay" on:click={() => {isSettingShow = false; document.getElementsByTagName('body')[0].style.overflow = 'auto'}}>
     <div style="width: 40%; height: 300px; border: 1px solid black; background-color: white" on:click={preventModalClose}>
@@ -126,5 +153,14 @@
         display: flex;
         justify-content: center;
         align-items: center;
+    }
+    .loading-overlay {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99;
     }
 </style>
