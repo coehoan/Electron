@@ -1,5 +1,5 @@
 <script>
-    import {companySeq} from "../../../scripts/store/store";
+    import {companySeq, companyYear} from "../../../scripts/store/store";
     import {onDestroy, onMount} from "svelte";
     import Header from "../../lib/layout/Header.svelte";
     import {DialogType, MainTitle} from "../../../scripts/util/enum";
@@ -8,6 +8,8 @@
     let title = MainTitle.CompanyInfo;
     let companyInfo = [];
     let newAdminList =[];
+    let isSameYear = true;
+    let currentYear = new Date().getFullYear().toString();
 
     let dialogOption = {
         option: {
@@ -23,6 +25,8 @@
     onMount(() => {
         window.api.response('infoResponse', (data) => {
             companyInfo = data;
+            isSameYear = currentYear === $companyYear;
+            window.api.removeResponse('infoResponse');
         })
         window.api.request('getCompanyInfo');
     })
@@ -174,7 +178,7 @@
                 <th></th>
                 <th></th>
                 <th>
-                    <button on:click={addAdminList} style="width: 100px">추가</button>
+                    <button on:click={addAdminList} disabled="{!isSameYear}" style="width: 100px">추가</button>
                 </th>
             </tr>
             <tr>
@@ -196,7 +200,7 @@
                     <td>{info.tel}</td>
                     <td>{info.phone}</td>
                     <td>{info.type}</td>
-                    <td><button on:click={() => {deleteAdmin(info.id)}}>삭제</button></td>
+                    <td><button on:click={() => {deleteAdmin(info.id)}} disabled="{!isSameYear}">삭제</button></td>
                 </tr>
             {/each}
             {#if newAdminList.length > 0}
@@ -225,7 +229,7 @@
                             </select>
                         </td>
                         <td>
-                            <button on:click={() => removeAdminList(index)}>삭제</button>
+                            <button on:click={() => removeAdminList(index)} disabled="{!isSameYear}">삭제</button>
                         </td>
                     </tr>
                 {/each}
@@ -238,7 +242,7 @@
                 <td></td>
                 <td></td>
                 <td>
-                    <button on:click={saveAdmin} style="width: 100px">저장</button>
+                    <button on:click={saveAdmin} style="width: 100px" disabled="{!isSameYear}">저장</button>
                 </td>
             </tr>
             </tbody>

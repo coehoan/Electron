@@ -23,7 +23,6 @@ module.exports = {
                 console.log('Empty Company Info:: ', err.message);
             } else {
                 event.sender.send('infoResponse', data);
-                ipcMain.removeListener('infoResponse', () => {})
             }
             db.close();
         })
