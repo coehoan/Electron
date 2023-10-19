@@ -136,9 +136,9 @@
     }
 
     function getColor(list) {
-        return list.inspect_score === '' ? 'darkcyan' :
-                (list.inspect_score !== '' && list.inspect_score === list.self_score) ? 'white' :
-                (list.inspect_score !== '' && list.inspect_score !== list.self_score) ? 'khaki' : '';
+        return list.inspect_result === '' ? 'darkcyan' :
+                (list.inspect_result !== '' && list.inspect_result === list.self_result) ? 'white' :
+                (list.inspect_result !== '' && list.inspect_result !== list.self_result) ? 'khaki' : '';
     }
 </script>
 

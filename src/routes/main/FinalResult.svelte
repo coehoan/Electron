@@ -179,7 +179,7 @@
             {#await questionList}
             {:then questionList}
                 {#each questionList as list, i}
-                    <tr on:click={() => {openModal(i)}} style="height: 50px; text-align: center; background-color: {list.self_score === list.inspect_score ? 'white' : 'khaki'}">
+                    <tr on:click={() => {openModal(i)}} style="height: 50px; text-align: center; background-color: {list.self_result === list.inspect_result ? 'white' : 'khaki'}">
                         <td>{list.id}</td>
                         <td>{list.num}</td>
                         <td>{list.point}</td>
