@@ -39,12 +39,16 @@ export function extractAnswers(data) {
 
     for (let i = 0; i < answerKeys.length; i++) {
         let answerKey = answerKeys[i];
-        let anspointKey = `anspoint${answerKey.replace("answer", "")}`;
+        let anspointKey = `anspoint${(i + 1).toString()}`;
 
         let answerObj = {};
         answerObj[answerKey] = data[answerKey];
         answerObj[anspointKey] = data[anspointKey];
-        answers.push(answerObj);
+
+        // 빈 값이 없을 때만 push
+        if (!!data[answerKey]) {
+            answers.push(answerObj);
+        }
     }
     return answers;
 }
