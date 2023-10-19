@@ -1,8 +1,8 @@
 <script>
-    import {companySeq, companyYear} from "../../../scripts/store/store";
+    import {companySeq, companyYear, completeYn} from "../../../scripts/store/store";
     import {onDestroy, onMount} from "svelte";
     import Header from "../../lib/layout/Header.svelte";
-    import {DialogType, MainTitle} from "../../../scripts/util/enum";
+    import {DialogType, MainTitle, Yn} from "../../../scripts/util/enum";
     import {emailCheck} from "../../../scripts/util/common";
 
     let title = MainTitle.CompanyInfo;
@@ -82,8 +82,13 @@
                 if (data) {
                     newAdminList = [];
                     // 담당자 저장, 삭제 성공 후 목록 재조회
+                    window.api.response('infoResponse', (data) => {
+                        companyInfo = data;
+                        isSameYear = currentYear === $companyYear;
+                        window.api.removeResponse('infoResponse');
+                        window.api.removeResponse('adminResponse');
+                    })
                     window.api.request('getCompanyInfo');
-                    window.api.removeResponse('adminResponse');
                 }
             })
             window.api.request('deleteAdmin', e);
@@ -145,9 +150,14 @@
                 } else if (data) {
                     newAdminList = [];
                     // 담당자 저장, 삭제 성공 후 목록 재조회
+                    window.api.response('infoResponse', (data) => {
+                        companyInfo = data;
+                        isSameYear = currentYear === $companyYear;
+                        window.api.removeResponse('infoResponse');
+                        window.api.removeResponse('adminResponse');
+                    })
                     window.api.request('getCompanyInfo');
                 }
-                window.api.removeResponse('adminResponse');
             })
             window.api.request('saveAdmin', newAdminList);
         }
@@ -178,7 +188,7 @@
                 <th></th>
                 <th></th>
                 <th>
-                    <button on:click={addAdminList} disabled="{!isSameYear}" style="width: 100px">추가</button>
+                    <button on:click={addAdminList} disabled="{!isSameYear || $completeYn === Yn.Y}" style="width: 100px">추가</button>
                 </th>
             </tr>
             <tr>
@@ -200,7 +210,7 @@
                     <td>{info.tel}</td>
                     <td>{info.phone}</td>
                     <td>{info.type}</td>
-                    <td><button on:click={() => {deleteAdmin(info.id)}} disabled="{!isSameYear}">삭제</button></td>
+                    <td><button on:click={() => {deleteAdmin(info.id)}} disabled="{!isSameYear || $completeYn === Yn.Y}">삭제</button></td>
                 </tr>
             {/each}
             {#if newAdminList.length > 0}
@@ -229,7 +239,7 @@
                             </select>
                         </td>
                         <td>
-                            <button on:click={() => removeAdminList(index)} disabled="{!isSameYear}">삭제</button>
+                            <button on:click={() => removeAdminList(index)} disabled="{!isSameYear || $completeYn === Yn.Y}">삭제</button>
                         </td>
                     </tr>
                 {/each}
@@ -242,7 +252,7 @@
                 <td></td>
                 <td></td>
                 <td>
-                    <button on:click={saveAdmin} style="width: 100px" disabled="{!isSameYear}">저장</button>
+                    <button on:click={saveAdmin} style="width: 100px" disabled="{!isSameYear || $completeYn === Yn.Y}">저장</button>
                 </td>
             </tr>
             </tbody>
