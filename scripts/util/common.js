@@ -25,7 +25,16 @@ export function checkSelfScores(data) {
  * 빈값이 있으면 false, 없으면 true 리턴
  * */
 export function checkInspectScores(data) {
-    return data.every(item => !!item.inspect_score);
+    try {
+        data.forEach((e) => {
+            if (e.inspect_score === '' || e.inspect_score === null || e.inspect_score === undefined) {
+                throw new Error();
+            }
+        })
+        return true;
+    } catch (e) {
+        return false
+    }
 }
 
 /**

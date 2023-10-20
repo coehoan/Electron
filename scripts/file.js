@@ -6,6 +6,8 @@ const {basename} = require('path');
 const path = require('path');
 const AdmZip = require('adm-zip');
 const fsExtra = require('fs-extra');
+const archiver = require('archiver');
+const Minizip = require('minizip-asm.js');
 
 let db;
 
@@ -46,11 +48,23 @@ module.exports = {
                                 }
                                 savePath = args.path; // 지정 경로
 
-                                let zip = new AdmZip(); // 새로운 zip 파일 생성
-                                zip.addFile('self_result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // obj를 self_result.json 파일로 저장
-                                zip.writeZip(`${savePath}/${args.year}_${company.name}_self_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_self_result.zip 으로 생성
+                                // register format for archiver
+                                // note: only do it once per Node.js process/application, as duplicate registration will throw an error
+                                archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
+                                let output = fs.createWriteStream(`${savePath}/${args.year}_${company.name}_self_result.zip`);
+                                let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'aes256', password: 'test123'});
+
+                                // 아카이브 데이터를 파일로 파이프
+                                archive.pipe(output);
+                                // 버퍼로 읽은 obj를 아카이브에 추가
+                                archive.append(Buffer.from(JSON.stringify(obj)), { name: 'self_result.json' });
+                                archive.finalize().then(() => {
                                     event.sender.send('fileResponse', true);
                                 });
+                                /*
+                                zip.writeZip(`${savePath}/${args.year}_${company.name}_self_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_self_result.zip 으로 생성
+                                    event.sender.send('fileResponse', true);
+                                });*/
                             }
                         })
                     }
@@ -100,14 +114,30 @@ module.exports = {
                                     savePath = args.path; // 지정 경로
                                     let inspectFilePath = path.join(__dirname, `../static/files/inspect/${args.year}`); // 현장실사 증빙자료 경로
 
-                                    let zip = new AdmZip(); // 새로운 zip 파일 생성
+                                    archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
+                                    let output = fs.createWriteStream(`${savePath}/${args.year}_${company.name}_inspect_result.zip`);
+                                    let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'aes256', password: 'test123'});
+
+                                    // 아카이브 데이터를 파일로 파이프
+                                    archive.pipe(output);
+                                    // 버퍼로 읽은 obj를 아카이브에 추가
+                                    archive.append(Buffer.from(JSON.stringify(obj)), { name: 'inspect_result.json' });
+                                    if (fs.existsSync(inspectFilePath)) {
+                                        archive.directory(inspectFilePath, false); // 증빙자료 zip 파일에 추가
+                                        // zip.addLocalFolder(inspectFilePath);
+                                    }
+                                    archive.finalize().then(() => {
+                                        event.sender.send('fileResponse', true);
+                                    });
+
+                                    /*let zip = new AdmZip(); // 새로운 zip 파일 생성
                                     zip.addFile('inspect_result.json', Buffer.from(JSON.stringify(obj), 'utf-8')); // obj를 self_result.json 파일로 저장 후 zip 파일에 추가
                                     if (fs.existsSync(inspectFilePath)) {
                                         zip.addLocalFolder(inspectFilePath); // 증빙자료 zip 파일에 추가
                                     }
                                     zip.writeZip(`${savePath}/${args.year}_${company.name}_inspect_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_inspect_result.zip 으로 생성
                                         event.sender.send('fileResponse', true);
-                                    });
+                                    });*/
                                 }
                             })
                         })
@@ -209,8 +239,23 @@ module.exports = {
      * 3. final_result.json 파일로 현재 db 파일 업데이트
      * 4. files/result 폴더에 해당 db 파일 저장 (년도별 관리)
      * */
-    getFinalFile: ipcMain.on('getFinalFile', (event, args) => {
-        let res;
+    getFinalFile: ipcMain.on('getFinalFile', async (event, args) => {
+        let filePath = path.join(__dirname, '../static/test');
+        let password = 'test123';
+        // args.replace(/\//g, '\\')
+        // let file = await fs.readFileSync(args);
+        try {
+            // libzip.ZipFile.ExtractToDirectory(args, filePath, password);
+            let mz = new Minizip();
+            mz.extract(filePath, password)
+        } catch (e) {
+            console.log(e)
+        }
+
+
+
+
+        /*let res;
         let year = new Date().getFullYear(); // 현재년도
         let inspectFilesPath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 증빙자료 파일 경로
         let zip = new AdmZip(args); // zip 파일 생성
@@ -323,7 +368,7 @@ module.exports = {
                 });
                 event.sender.send('getFinalFileResponse', true);
             })
-        })
+        })*/
     }),
     /**
      * 백업
