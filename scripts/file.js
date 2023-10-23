@@ -48,11 +48,19 @@ module.exports = {
                                 }
                                 savePath = args.path; // 지정 경로
 
-                                // register format for archiver
+                                let mz = new Minizip();
+                                mz.append('/self_result.json', Buffer.from(JSON.stringify(obj)), {password: 'test123'})
+                                fs.writeFile(`${savePath}/${args.year}_${company.name}_self_result.zip`, mz.zip(), (err) => {
+                                    if (err) throw err;
+                                    else event.sender.send('fileResponse', true);
+                                });
+
+
+                                /*// register format for archiver
                                 // note: only do it once per Node.js process/application, as duplicate registration will throw an error
                                 archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
                                 let output = fs.createWriteStream(`${savePath}/${args.year}_${company.name}_self_result.zip`);
-                                let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'aes256', password: 'test123'});
+                                let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'zip20', password: 'test123'});
 
                                 // 아카이브 데이터를 파일로 파이프
                                 archive.pipe(output);
@@ -61,10 +69,10 @@ module.exports = {
                                 archive.finalize().then(() => {
                                     event.sender.send('fileResponse', true);
                                 });
-                                /*
+                                /!*
                                 zip.writeZip(`${savePath}/${args.year}_${company.name}_self_result.zip`, () => { // zip 파일을 선택 된 경로에 년도_기관명_self_result.zip 으로 생성
                                     event.sender.send('fileResponse', true);
-                                });*/
+                                });*!/*/
                             }
                         })
                     }
@@ -116,7 +124,7 @@ module.exports = {
 
                                     archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
                                     let output = fs.createWriteStream(`${savePath}/${args.year}_${company.name}_inspect_result.zip`);
-                                    let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'aes256', password: 'test123'});
+                                    let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'zip20', password: 'test123'});
 
                                     // 아카이브 데이터를 파일로 파이프
                                     archive.pipe(output);
@@ -240,17 +248,21 @@ module.exports = {
      * 4. files/result 폴더에 해당 db 파일 저장 (년도별 관리)
      * */
     getFinalFile: ipcMain.on('getFinalFile', async (event, args) => {
-        let filePath = path.join(__dirname, '../static/test');
+        let extractPath = path.join(__dirname, '../static/test');
         let password = 'test123';
-        // args.replace(/\//g, '\\')
-        // let file = await fs.readFileSync(args);
-        try {
-            // libzip.ZipFile.ExtractToDirectory(args, filePath, password);
-            let mz = new Minizip();
-            mz.extract(filePath, password)
-        } catch (e) {
-            console.log(e)
-        }
+
+        let fe = new FileReader();
+        let mz = new Minizip();
+        let file = new File(await mz.extract(args, {password: password}), 'test.zip');
+        console.log(file)
+
+
+
+
+
+
+
+
 
 
 
@@ -521,4 +533,54 @@ async function readFile(filepath) {
             }
         })
     })
+}
+
+function unzipArchive(zipPath, extractPath, password) {
+    // Opening zip archive, gives us access to its root directory in the .then()-callback
+    let filepath;
+    unzipper.Open.file(zipPath).then((centralDirectory) => {
+        return new Promise((resolve, reject) => {
+            // Iterate through every file inside there (this includes directories and files in subdirectories)
+            for (let i = 0; i < centralDirectory.files.length.length; i++) {
+                const file = centralDirectory.files.length[i];
+                filepath = path.join(extractPath, file.path);
+                // Now this is a very 'quick n dirty' way of checking if it is a subdirectory, but so far it hasn't failed me ;)
+                if(file.path.endsWith("/")) {
+                    fs.mkdirSync(filepath);
+                }
+                else {
+                    // This can get problematic when your archive contains alot of files, since the file.stream() works async and you have a limit of open writers.
+                    // If you fall into that category, my first thought would be using tail-recursion and start the next write in the .on('finished', ...)
+                    file.stream(password).pipe(fs.createWriteStream(filepath))
+                        .on('finished', resolve)
+                        .on('error', reject);
+                }
+            }
+        });
+    });
+}
+
+async function checkPasswordValid(zipFilePath, password) {
+    let directory = null;
+    try {
+        directory = await unzipper.Open.file(zipFilePath);
+        return new Promise((resolve, reject) => {
+            // console.log(directory.files[0].path)
+            directory.files[0].stream(password)
+                .on('error', (err) => {
+                    console.log('I am heere too bro in error')
+                    console.log(err.message);
+
+                })
+                .on("readable", () => {
+                    console.log('I am heere too bro')
+                })
+                .on('error', reject)
+                .on("finished", resolve);
+        });
+    }
+    catch (err) {
+        console.log('I am heere too bro in error in catch')
+        console.log(err.message);
+    }
 }
