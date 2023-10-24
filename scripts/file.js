@@ -7,7 +7,9 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 const fsExtra = require('fs-extra');
 const archiver = require('archiver');
+archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
 const Minizip = require('minizip-asm.js');
+require("dotenv").config();
 
 let db;
 
@@ -49,7 +51,7 @@ module.exports = {
                                 savePath = args.path; // 지정 경로
 
                                 let mz = new Minizip();
-                                mz.append('/self_result.json', Buffer.from(JSON.stringify(obj)), {password: 'test123'})
+                                mz.append('/self_result.json', Buffer.from(JSON.stringify(obj)), {password: process.env.ZIP_PASSWORD})
                                 fs.writeFile(`${savePath}/${args.year}_${company.name}_self_result.zip`, mz.zip(), (err) => {
                                     if (err) throw err;
                                     else event.sender.send('fileResponse', true);
@@ -106,7 +108,7 @@ module.exports = {
                         // completeYn 수정
                         db.run(`
                             UPDATE company
-                            SET completeYn = 'Y'
+                            SET completeYn = 'N'
                             WHERE id = ${admin[0].company_seq}
                         `, () => {
                             db.get(`SELECT * FROM company WHERE id = ${admin[0].company_seq}`, (err, row) => {
@@ -121,10 +123,8 @@ module.exports = {
                                     }
                                     savePath = args.path; // 지정 경로
                                     let inspectFilePath = path.join(__dirname, `../static/files/inspect/${args.year}`); // 현장실사 증빙자료 경로
-
-                                    archiver.registerFormat('zip-encrypted', require("archiver-zip-encrypted"));
                                     let output = fs.createWriteStream(`${savePath}/${args.year}_${company.name}_inspect_result.zip`);
-                                    let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'zip20', password: 'test123'});
+                                    let archive = archiver.create('zip-encrypted', {zlib: {level: 9}, encryptionMethod: 'zip20', password: process.env.ZIP_PASSWORD});
 
                                     // 아카이브 데이터를 파일로 파이프
                                     archive.pipe(output);
@@ -242,145 +242,134 @@ module.exports = {
     }),
     /**
      * 최종결과 파일 불러온 뒤 DB 저장
-     * 1. 최종결과 zip 파일 오픈
-     * 2. 압축 해제 후 files/inspect/현재년도 폴더 덮어쓰기
-     * 3. final_result.json 파일로 현재 db 파일 업데이트
-     * 4. files/result 폴더에 해당 db 파일 저장 (년도별 관리)
+     * 1. dialog로 받은 경로 파일을 버퍼로 읽는다.
+     * 2. decrypt 함수로 암호화 된 압축파일 해제
+     * 3. tmp 폴더에 해당 압축파일 해제 후 files/inspect/현재년도 폴더 덮어쓰기
+     * 4. final_result.json 파일로 현재 db 파일 업데이트
+     * 5. files/result 폴더에 해당 db 파일 저장 (년도별 관리)
      * */
     getFinalFile: ipcMain.on('getFinalFile', async (event, args) => {
-        let extractPath = path.join(__dirname, '../static/test');
-        let password = 'test123';
+        let extractPath = path.join(__dirname, '../static/tmp');
 
-        let fe = new FileReader();
-        let mz = new Minizip();
-        let file = new File(await mz.extract(args, {password: password}), 'test.zip');
-        console.log(file)
+        fs.readFile(args, (err, data) => {
+            if (err) {
+                console.error('Error reading the file:', err);
+            } else {
+                let result = decrypt(data, process.env.ZIP_PASSWORD, extractPath);
+                if (result) {
+                    let res;
+                    let year = new Date().getFullYear(); // 현재년도
+                    let inspectFilesPath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 증빙자료 파일 경로
+                    let tmpFolderPath = path.join(__dirname, '../static/tmp/');
+                    res = JSON.parse(fs.readFileSync(path.join(tmpFolderPath, 'final_result.json')).toString());
 
-
-
-
-
-
-
-
-
-
-
-
-        /*let res;
-        let year = new Date().getFullYear(); // 현재년도
-        let inspectFilesPath = path.join(__dirname, `../static/files/inspect/${year}`); // 해당년도 증빙자료 파일 경로
-        let zip = new AdmZip(args); // zip 파일 생성
-        let zipEntries = zip.getEntries(); // zip 파일 컨텐츠
-        zipEntries.forEach((e) => {
-            // zip 파일 중 final_result.json 파일을 찾는다.
-            if (e.entryName === 'final_result.json') {
-                res = JSON.parse(e.getData().toString('utf8'));
-            }
-        })
-        // final_result.json의 company.year가 현재년도가 아닌 경우
-        if (year !== new Date(res.company.year).getFullYear()) {
-            year = res.company.year;
-            inspectFilesPath = path.join(__dirname, `../static/files/inspect/${res.company.year}`);
-        }
-
-        fsExtra.emptyDirSync(inspectFilesPath); // savePath 내 모든 파일 삭제
-        zip.extractAllTo(inspectFilesPath, true); // savePath에 zip 파일 압축해제 (덮어쓰기)
-        fs.unlinkSync(`${inspectFilesPath}\\final_result.json`); // 저장 후 final_result.json 파일 삭제
-
-        let dbPath = path.join(__dirname, '../db');
-        let dbFilePath = path.join(dbPath, '/evaluation.db');
-        db = new sqlite3.Database(dbFilePath);
-        db.serialize(() => {
-            db.run(`DELETE FROM company`);
-            db.run(`DELETE FROM admin`);
-            db.run(`DELETE FROM questions`);
-            db.run(`
-                INSERT INTO company(id, code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn, year)
-                VALUES(
-                1,
-                ${res.company.code},
-                '${res.company.name}', 
-                '${res.company.type}', 
-                '${res.company.address}', 
-                '${res.company.activity_value}',
-                '${res.company.training_max}', 
-                '${res.company.training_value}', 
-                '${res.company.protect_max}', 
-                '${res.company.protect_value}', 
-                '${res.company.appeal_value}', 
-                '${res.company.completeYn}', 
-                '${res.company.year}')
-            `);
-            res.admin.forEach((e) => {
-                db.run(`
-                    INSERT INTO admin
-                    VALUES(${e.id}, 1, 1, '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
-                `)
-            });
-            res.questions.forEach((e) => {
-                db.run(`
-                    INSERT INTO questions
-                    VALUES(
-                        '${e.id}',
-                        '${e.num}',
-                        '${e.type}',
-                        '${e.point}',
-                        '${e.question}', 
-                        '${e.answer1}', 
-                        '${e.anspoint1}', 
-                        '${e.answer2}', 
-                        '${e.anspoint2}', 
-                        '${e.answer3}',
-                        '${e.anspoint3}',
-                        '${e.answer4}', 
-                        '${e.anspoint4}', 
-                        '${e.answer5}', 
-                        '${e.anspoint5}', 
-                        '${e.self_result}', 
-                        '${e.self_score}', 
-                        '${e.inspect_result}',
-                        '${e.inspect_score}',
-                        '${e.stalenessYn}',
-                        '${e.evidence}',
-                        '${e.comment}',
-                        '${e.self_memo}',
-                        '${e.inspect_memo}')
-                    `);
-            });
-            db.run(`
-                UPDATE basic_info
-                SET company_seq = 1
-            `, () => {
-                // 저장 경로에 폴더가 없으면 해당 폴더 생성
-                let filePath = path.join(__dirname, '../db/evaluation.db');
-                let staticPath = path.join(__dirname, '../static');
-                let filesPath = path.join(__dirname, '../static/files');
-                let resultPath = path.join(__dirname, '../static/files/result');
-                let savePath = path.join(__dirname, '../static/files/result/'); // 저장 경로
-
-                if (!fs.existsSync(staticPath)) {
-                    fs.mkdirSync(staticPath)
-                }
-                if (!fs.existsSync(filesPath)) {
-                    fs.mkdirSync(filesPath)
-                }
-                if (!fs.existsSync(resultPath)) {
-                    fs.mkdirSync(resultPath)
-                }
-                if (!fs.existsSync(savePath + year)) {
-                    fs.mkdirSync(savePath + year);
-                }
-
-                // /static/files/result/해당년도에 최종 결과 파일 복사
-                fs.copyFile(filePath, `${savePath}${year}\\evaluation.db`, (err) => {
-                    if (err) {
-                        console.log('Inspect file upload error:: ', err.message);
+                    // final_result.json의 company.year가 현재년도가 아닌 경우
+                    if (year !== new Date(res.company.year).getFullYear()) {
+                        year = res.company.year;
+                        inspectFilesPath = path.join(__dirname, `../static/files/inspect/${res.company.year}`);
                     }
-                });
-                event.sender.send('getFinalFileResponse', true);
-            })
-        })*/
+                    fs.unlinkSync(`${tmpFolderPath}\\final_result.json`); // final_result.json 파일 삭제
+                    fsExtra.emptyDirSync(inspectFilesPath); // inspectFilesPath 내 모든 파일 삭제
+                    fsExtra.copySync(extractPath, inspectFilesPath, {overwrite: true, recursive: true}); // extractPath를 inspectFilesPath로 복사
+                    fs.rmSync(extractPath, {recursive: true}); // extractPath 폴더 삭제
+
+                    let dbPath = path.join(__dirname, '../db');
+                    let dbFilePath = path.join(dbPath, '/evaluation.db');
+                    db = new sqlite3.Database(dbFilePath);
+
+                    db.serialize(() => {
+                        db.run(`DELETE FROM company`);
+                        db.run(`DELETE FROM admin`);
+                        db.run(`DELETE FROM questions`);
+                        db.run(`
+                            INSERT INTO company(id, code, name, type, address, activity_value, training_max, training_value, protect_max, protect_value, appeal_value, completeYn, year)
+                            VALUES(
+                            1,
+                            ${res.company.code},
+                            '${res.company.name}',
+                            '${res.company.type}',
+                            '${res.company.address}',
+                            '${res.company.activity_value}',
+                            '${res.company.training_max}',
+                            '${res.company.training_value}',
+                            '${res.company.protect_max}',
+                            '${res.company.protect_value}',
+                            '${res.company.appeal_value}',
+                            '${res.company.completeYn}',
+                            '${res.company.year}')
+                        `);
+                        res.admin.forEach((e) => {
+                            db.run(`
+                                INSERT INTO admin
+                                VALUES(${e.id}, 1, 1, '${e.name}', '${e.roles}', '${e.email}', '${e.tel}', '${e.phone}', '${e.type}')
+                            `)
+                        });
+                        res.questions.forEach((e) => {
+                            db.run(`
+                                INSERT INTO questions
+                                VALUES(
+                                '${e.id}',
+                                '${e.num}',
+                                '${e.type}',
+                                '${e.point}',
+                                '${e.question}',
+                                '${e.answer1}',
+                                '${e.anspoint1}',
+                                '${e.answer2}',
+                                '${e.anspoint2}',
+                                '${e.answer3}',
+                                '${e.anspoint3}',
+                                '${e.answer4}',
+                                '${e.anspoint4}',
+                                '${e.answer5}',
+                                '${e.anspoint5}',
+                                '${e.self_result}',
+                                '${e.self_score}',
+                                '${e.inspect_result}',
+                                '${e.inspect_score}',
+                                '${e.stalenessYn}',
+                                '${e.evidence}',
+                                '${e.comment}',
+                                '${e.self_memo}',
+                                '${e.inspect_memo}')
+                            `);
+                        });
+                        db.run(`
+                            UPDATE basic_info
+                            SET company_seq = 1
+                        `, () => {
+                            // 저장 경로에 폴더가 없으면 해당 폴더 생성
+                            let filePath = path.join(__dirname, '../db/evaluation.db');
+                            let staticPath = path.join(__dirname, '../static');
+                            let filesPath = path.join(__dirname, '../static/files');
+                            let resultPath = path.join(__dirname, '../static/files/result');
+                            let savePath = path.join(__dirname, '../static/files/result/'); // 저장 경로
+
+                            if (!fs.existsSync(staticPath)) {
+                                fs.mkdirSync(staticPath)
+                            }
+                            if (!fs.existsSync(filesPath)) {
+                                fs.mkdirSync(filesPath)
+                            }
+                            if (!fs.existsSync(resultPath)) {
+                                fs.mkdirSync(resultPath)
+                            }
+                            if (!fs.existsSync(savePath + year)) {
+                                fs.mkdirSync(savePath + year);
+                            }
+
+                            // /static/files/result/해당년도에 최종 결과 파일 복사
+                            fs.copyFile(filePath, `${savePath}${year}\\evaluation.db`, (err) => {
+                                if (err) {
+                                    console.log('Inspect file upload error:: ', err.message);
+                                }
+                            });
+                            event.sender.send('getFinalFileResponse', true);
+                        })
+                    })
+                }
+            }
+        });
     }),
     /**
      * 백업
@@ -535,52 +524,32 @@ async function readFile(filepath) {
     })
 }
 
-function unzipArchive(zipPath, extractPath, password) {
-    // Opening zip archive, gives us access to its root directory in the .then()-callback
-    let filepath;
-    unzipper.Open.file(zipPath).then((centralDirectory) => {
-        return new Promise((resolve, reject) => {
-            // Iterate through every file inside there (this includes directories and files in subdirectories)
-            for (let i = 0; i < centralDirectory.files.length.length; i++) {
-                const file = centralDirectory.files.length[i];
-                filepath = path.join(extractPath, file.path);
-                // Now this is a very 'quick n dirty' way of checking if it is a subdirectory, but so far it hasn't failed me ;)
-                if(file.path.endsWith("/")) {
-                    fs.mkdirSync(filepath);
-                }
-                else {
-                    // This can get problematic when your archive contains alot of files, since the file.stream() works async and you have a limit of open writers.
-                    // If you fall into that category, my first thought would be using tail-recursion and start the next write in the .on('finished', ...)
-                    file.stream(password).pipe(fs.createWriteStream(filepath))
-                        .on('finished', resolve)
-                        .on('error', reject);
-                }
-            }
-        });
-    });
-}
-
-async function checkPasswordValid(zipFilePath, password) {
-    let directory = null;
+/**
+ * 암호화 된 압축파일 압축해제
+ * data: protected zip file path(string)
+ * password: password(string)
+ * extractPath: path to extract zip file(string)
+ * */
+function decrypt(data, password, extractPath) {
     try {
-        directory = await unzipper.Open.file(zipFilePath);
-        return new Promise((resolve, reject) => {
-            // console.log(directory.files[0].path)
-            directory.files[0].stream(password)
-                .on('error', (err) => {
-                    console.log('I am heere too bro in error')
-                    console.log(err.message);
+        let zip = new Minizip(new Uint8Array(data));
 
-                })
-                .on("readable", () => {
-                    console.log('I am heere too bro')
-                })
-                .on('error', reject)
-                .on("finished", resolve);
+        zip.list({ encoding: 'buffer' }).forEach((o) => {
+            let extractedData = zip.extract(o.filepath, { password: password });
+            let outputPath = path.join(extractPath, o.filepath.toString());
+
+            // 폴더 존재하지 않을 때 생성
+            let outputDir = path.dirname(outputPath);
+            if (!fs.existsSync(outputDir)) {
+                fs.mkdirSync(outputDir, { recursive: true });
+            }
+
+            fs.writeFileSync(outputPath, Buffer.from(extractedData));
         });
-    }
-    catch (err) {
-        console.log('I am heere too bro in error in catch')
-        console.log(err.message);
+
+        return true;
+    } catch (e) {
+        console.log(e);
+        return false;
     }
 }
