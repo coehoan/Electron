@@ -75,8 +75,56 @@
      * */
     function prev() {
         if (selectedSeq !== 1) {
-            selectedSeq = selectedSeq - 1;
-            updateAnswer();
+
+            let data = {
+                id: '',
+                self_result: '',
+                self_score: '',
+                self_memo: ''
+            };
+            // 객관식 단일체크
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                // 답변 체크 된 경우 저장 후 다음문항 이동
+                if (singleChoiceAnswer !== 0) {
+                    data = {
+                        id: selectedSeq,
+                        self_result: singleChoiceAnswer,
+                        self_score: answerList[singleChoiceAnswer - 1][`anspoint${singleChoiceAnswer}`],
+                        self_memo: questionList[selectedSeq - 1].self_memo || ''
+                    };
+                    saveAndMoveToPrev(data);
+                } else {
+                    moveToPrev();
+                }
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중체크
+                data = {
+                    id: selectedSeq,
+                    self_result: typeof multiChoiceAnswer === 'string' ? multiChoiceAnswer : multiChoiceAnswer.sort().join(';'),
+                    self_score: multiChoicePoint,
+                    self_memo: questionList[selectedSeq - 1].self_memo || ''
+                };
+                saveAndMoveToPrev(data);
+
+            } else {
+                // 주관식
+                let inputs = document.getElementsByName('answer');
+                let values = Array.from(inputs, input => input.value);
+
+                if (values.every(e => e !== '')) {
+                    data = {
+                        id: selectedSeq,
+                        self_result: values.join(';'),
+                        // TODO: 주관식 답변 점수 스크립트 처리
+                        // self_score: 'script 처리 후 입력',
+                        self_score: 1,
+                        self_memo: questionList[selectedSeq - 1].self_memo || ''
+                    };
+                    saveAndMoveToPrev(data);
+                } else {
+                    moveToPrev();
+                }
+            }
         }
     }
 
@@ -145,6 +193,44 @@
             if (result) {
                 moveToNext();
             }
+        });
+    }
+
+    function saveAndMoveToPrev(data) {
+        window.api.request('saveSelfAnswer', data); // data 저장
+        window.api.response('evalSaveResponse', (result) => { // 저장 결과
+            if (result) {
+                moveToPrev();
+            }
+        });
+    }
+
+    function moveToPrev() {
+        selectedSeq = selectedSeq - 1; // 다음문항 이동
+        isCommentShow = false; // 지표 해설 팝업창 close
+        window.api.request('getQuestionInfo'); // question 정보 다시 받아오기
+        window.api.response('selfResponse', (data) => { // question 받아오기 결과
+            questionList = data; // questionList 업데이트
+            answerList = extractAnswers(questionList[selectedSeq - 1]); // 답변 리스트
+            if (questionList[selectedSeq - 1].type === QuestionType.SingleChoice) {
+                singleChoiceAnswer = questionList[selectedSeq - 1]['self_result'] === '' ? 0 : parseInt(questionList[selectedSeq - 1]['self_result']); // 체크된 답변 변경
+            } else if (questionList[selectedSeq - 1].type === QuestionType.MultipleChoice) {
+                // 객관식 다중항목
+                // 체크된 답변 변경
+                multiChoiceAnswer = (questionList[selectedSeq - 1]['self_result'] === '') // 빈값일 때
+                    ? [] // 빈 배열
+                    : questionList[selectedSeq - 1]['self_result'].includes(';') // ;로 구분처리 된 값이 있을 때
+                        ? questionList[selectedSeq - 1]['self_result'].split(';') // ;로 split
+                        : new Array(1).fill(questionList[selectedSeq - 1]['self_result']); // 답변이 1개만 체크됐을 때 length 1짜리 배열
+                multiChoiceCheck();
+            } else {
+                subAnswerList = questionList[selectedSeq - 1]['self_result'] === '' ? new Array(answerList.length).fill("") : questionList[selectedSeq - 1]['self_result'].split(';'); // 주관식 답변 리스트
+                subAnswerElements = document.getElementsByName('answer');
+                subAnswerElements[0].focus();
+            }
+            // 리스너 삭제
+            window.api.removeResponse('evalSaveResponse');
+            window.api.removeResponse('selfResponse');
         });
     }
 
